@@ -1,0 +1,559 @@
+/*
+ * Dense tables, and the confidence ramp that lives in them.
+ *
+ * Rows are 30px and separated by 1px hairlines. There is no card, no rounded row, no
+ * zebra striping: the ramp already varies row to row, and stripes would fight it.
+ */
+
+.table-wrap {
+  /* Column priority is decided by the width the table actually gets, not the window's —
+     the nav collapses and the context panel drags, so the two are not the same number. */
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  font-size: var(--text-data);
+}
+
+.table th,
+.table td {
+  padding: 0 var(--space-3);
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--space-6);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--space-6);
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  height: var(--row-height);
+  background: var(--bg);
+  border-bottom: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
+/* A sortable header is a button, not a th with a click handler. */
+.table thead th button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: inherit;
+  font: inherit;
+}
+
+.table thead th button:hover {
+  color: var(--ink);
+}
+
+.table tbody tr {
+  height: var(--row-height);
+  border-bottom: var(--hairline) solid var(--border);
+  transition: background var(--dur-micro) var(--ease);
+}
+
+.table tbody tr:hover {
+  background: var(--row-hover);
+}
+
+.table tbody tr[aria-selected='true'] {
+  background: var(--row-selected);
+}
+
+/* Selection is carried by the fill, by aria-selected, and by the context panel changing
+   to match — never by a stripe down the left edge. */
+.table tbody tr[aria-selected='true'] td {
+  box-shadow: inset 0 -1px 0 var(--border-strong);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.col--num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------- the confidence ramp
+ *
+ * Lightness and weight. Never hue.
+ *
+ * `--conf-ink` and `--conf-weight` are set once per row from `data-confidence`, and
+ * every part of the row that carries confidence reads them. Promotion changes one
+ * attribute; the transition below is what makes that read as developing rather than
+ * flipping.
+ *
+ * The four levels are also distinguished by a glyph and by their name in words, so the
+ * ramp survives greyscale, every form of colour blindness, and a screenshot at 50%.
+ */
+[data-confidence] {
+  --conf-ink: var(--ink-latent);
+  --conf-weight: var(--weight-latent);
+}
+
+[data-confidence='unverified'] {
+  --conf-ink: var(--ink-latent);
+  --conf-weight: var(--weight-latent);
+}
+
+[data-confidence='corroborated'] {
+  --conf-ink: var(--ink-developing);
+  --conf-weight: var(--weight-developing);
+}
+
+[data-confidence='confirmed'] {
+  --conf-ink: var(--ink-developed);
+  --conf-weight: var(--weight-developed);
+}
+
+[data-confidence='refuted'] {
+  --conf-ink: var(--ink-fixed);
+  --conf-weight: var(--weight-fixed);
+}
+
+/* A refuted row sinks rather than dims. Dimming it below the legibility floor would make
+   "this is false" the hardest thing on screen to read, and knowing something is false is
+   a result. */
+.table tbody tr[data-confidence='refuted'] {
+  background: var(--row-refuted);
+}
+
+.table tbody tr[data-confidence='refuted']:hover {
+  background: var(--row-hover);
+}
+
+/* The developing transition: 280ms, DESIGN.md's single most thematic moment. Weight is
+   animated through the variable axis, so the claim physically thickens — a static font
+   could only snap between instances. */
+.conf-ink {
+  color: var(--conf-ink);
+  font-variation-settings: 'wght' var(--conf-weight);
+  transition:
+    color var(--dur-develop) var(--ease),
+    font-variation-settings var(--dur-develop) var(--ease);
+}
+
+.conf {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--conf-ink);
+  font-variation-settings: 'wght' var(--conf-weight);
+  transition:
+    color var(--dur-develop) var(--ease),
+    font-variation-settings var(--dur-develop) var(--ease);
+}
+
+.conf__glyph {
+  flex: none;
+}
+
+.conf__word {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Struck through, as specified. The line is drawn in the same ink as the text, so it
+   never becomes a second colour signal. */
+[data-confidence='refuted'] .conf__word,
+[data-confidence='refuted'] .claim {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.claim {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--conf-ink);
+  font-variation-settings: 'wght' var(--conf-weight);
+  transition:
+    color var(--dur-develop) var(--ease),
+    font-variation-settings var(--dur-develop) var(--ease);
+}
+
+/* ----------------------------------------------------------------- streaming in
+ * Findings arrive one at a time from a running tool and appear in the order they were
+ * actually found, 20ms apart. This is not decoration: the order is information, and a
+ * batch that lands all at once hides which site answered first.
+ *
+ * The index is capped by the component at 24 steps (480ms) so a large parse does not
+ * take ten seconds to finish drawing.
+ */
+.is-arriving {
+  animation: arrive var(--dur-base) var(--ease) both;
+  animation-delay: calc(var(--arrive-index, 0) * var(--stagger-step));
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------- the safelight
+ * A subtle amber gradient crosses the row being probed right now — and only while
+ * something is actually running. Amber is the working light: when nothing runs, there is
+ * no amber on screen.
+ *
+ * Drawn as a background-image so it costs no layout and no extra element, and so the
+ * reduced-motion fallback can be a static marker without changing the box model.
+ */
+.is-probing {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--sweep-peak) 38%,
+    var(--sweep-peak) 46%,
+    transparent 84%
+  );
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: safelight var(--dur-sweep) linear infinite;
+}
+
+@keyframes safelight {
+  from {
+    background-position: -140% 0;
+  }
+  to {
+    background-position: 240% 0;
+  }
+}
+
+/* DESIGN.md, non-negotiable: the sweep becomes a static amber left-marker. A
+   background-image rather than a border-left, so nothing shifts and no side-stripe
+   accent enters the design. */
+@media (prefers-reduced-motion: reduce) {
+  .is-probing {
+    animation: none;
+    background-image: linear-gradient(90deg, var(--accent) 0 2px, var(--sweep-peak) 2px 100%);
+    background-size: 100% 100%;
+  }
+}
+
+/* --------------------------------------------------------------- column priority
+   Narrow first drops the tool column, then the timestamp. Both remain in the context
+   panel for the selected row, so nothing becomes unreachable — it stops being repeated
+   on every line. */
+@container (max-width: 700px) {
+  .col--tool {
+    display: none;
+  }
+}
+
+@container (max-width: 520px) {
+  .col--seen {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------- candidate review
+ * Things an adapter discovered and did not add.
+ *
+ * Rows on hairlines, like the findings table, because they are the same kind of object
+ * at an earlier stage: a claim you have not accepted yet. They are a list rather than a
+ * table because each one carries its own expandable evidence, and a table row that grows
+ * a second table inside itself is a layout that fights the reader.
+ *
+ * The confidence ink here belongs to the *evidence*, never to the candidate. A candidate
+ * has no confidence of its own — inventing one would be exactly the quiet fabrication
+ * the whole confidence model exists to prevent.
+ */
+
+.cands {
+  border-top: var(--hairline) solid var(--border);
+}
+
+.cand {
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.cand__main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--row-height);
+  font-size: var(--text-data);
+}
+
+.cand__kind {
+  flex: none;
+  width: 84px;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.cand__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--conf-ink);
+  font-variation-settings: 'wght' var(--conf-weight);
+  transition:
+    color var(--dur-develop) var(--ease),
+    font-variation-settings var(--dur-develop) var(--ease);
+}
+
+.cand__conf {
+  flex: none;
+  width: 116px;
+}
+
+/* The evidence toggle. Quiet, because on a queue of thirty rows a filled button per row
+   is a wall of chrome rather than an affordance. */
+.cand__why {
+  flex: none;
+  height: 24px;
+  padding: 0 var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.cand__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The findings that proposed this, in the order they arrived. This is the review: not
+   "add this?" but "is this claim good enough to build on?". */
+.cand__evidence {
+  padding: 0 0 var(--space-3) 84px;
+}
+
+.cand__claim {
+  padding: var(--space-2) 0;
+}
+
+.cand__claim-text {
+  display: block;
+  max-width: var(--measure);
+  color: var(--conf-ink);
+  font-variation-settings: 'wght' var(--conf-weight);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.cand__claim-meta {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+/* The queue is bounded on screen, never in fact. The count beside the header is the real
+   number; this row is where the operator asks for the rest. */
+.cands__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+/* --------------------------------------------------------------- triage
+   The queue is grouped by how much the evidence actually supports, strongest band first
+   and the noise band collapsed. See `lib/triage.ts` for why dismissal is automated and
+   promotion never is.
+
+   No band colour. The ordering, the count and the sentence under each heading carry the
+   meaning; a red "probably not" would be fear framing on a screen whose whole job is to
+   stay unimpressed. */
+
+.cands__legend {
+  max-width: var(--measure);
+  padding-bottom: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.cands__legend strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cands__band + .cands__band {
+  margin-top: var(--space-5);
+}
+
+.cands__band-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--row-height);
+}
+
+.cands__band-name {
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.cands__band-count {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.cands__band-meaning {
+  max-width: var(--measure);
+  padding-bottom: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* A hidden group is dimmer, not gone. Nothing here is deleted and the rule that hid each
+   row is on the row. */
+.cands__band[data-band='noise'] .cand__value {
+  color: var(--ink-subtle);
+}
+
+/* The matcher badge. Icon plus text, never hue alone — the same rule the semantic states
+   follow everywhere else. */
+.cand__weak {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--warning);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+/* One line of reasoning under every row, always. A triage that only reorders teaches
+   nothing, and understanding the mechanism is the reason this application exists. */
+.cand__reason {
+  max-width: var(--measure);
+  padding: 0 0 var(--space-2) 84px;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+.cand__evidence-wrap {
+  padding-bottom: var(--space-2);
+}
+
+.cand__meaning {
+  max-width: var(--measure);
+  padding: 0 0 var(--space-2) 84px;
+  color: var(--ink);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.cand__signals {
+  padding-left: 84px;
+}
+
+.cand__signal {
+  display: grid;
+  grid-template-columns: 148px 108px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+.cand__signal-name {
+  color: var(--ink);
+}
+
+.cand__signal-weight {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cand__signal-detail {
+  min-width: 0;
+  color: var(--ink-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Weight is carried by lightness, exactly as confidence is, so it survives greyscale. */
+.cand__signal[data-strength='decisive'] .cand__signal-name,
+.cand__signal[data-strength='strong'] .cand__signal-name {
+  font-weight: 600;
+}
+
+/* What could not be checked. Struck neither through nor out — it is not a negative
+   result, it is the absence of one, and rendering the two the same is the mistake that
+   makes a self-audit dangerous. */
+.cand__signal--gap .cand__signal-name,
+.cand__signal--gap .cand__signal-weight {
+  color: var(--ink-subtle);
+}
+
+.cand__claim-why {
+  display: block;
+  max-width: var(--measure);
+  margin-top: var(--space-1);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* ------------------------------------------------------------------- orphaned
+   A finding whose entity was removed from the case.
+
+   The finding is kept — the observation happened and its raw capture is permanent — so
+   this marks the row rather than hiding it. A word in a hairline outline, deliberately
+   not a colour: the confidence ramp already owns lightness and weight in this row, and
+   orphaned is orthogonal to it. It says the subject left, not that the evidence weakened.
+   Sitting after the claim rather than in its own column, because it is rare and a whole
+   column of empty cells would cost the claim the width it needs. */
+
+/* The claim gives up the width, not the row the height. A findings row is 30px and stays
+   30px whether or not it carries a mark. */
+.claim-cell {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.claim-cell .claim {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.orphan {
+  flex: none;
+  padding: 0 var(--space-1);
+  border: var(--hairline) solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: 1.5;
+}

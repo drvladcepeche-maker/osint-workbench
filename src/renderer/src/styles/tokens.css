@@ -1,0 +1,263 @@
+/*
+ * The Darkroom — design tokens.
+ *
+ * DESIGN.md is the authority. Every value it specifies is reproduced here verbatim and
+ * marked `[DESIGN.md]`. Values it does not specify are marked `[derived]` and carry the
+ * reason they exist.
+ *
+ * Two rules this file exists to make enforceable:
+ *
+ *   1. No component may contain a literal colour. If a value is needed, it becomes a
+ *      token here first. `npm run design:contrast` parses this file directly, so a
+ *      colour that lives in a component is a colour nobody measured.
+ *   2. Confidence is carried by lightness and weight, never hue. The four ramp tokens
+ *      below differ in L by design and in C only enough to keep them from looking dead.
+ *
+ * Measured, not assumed: `node scripts/contrast.mjs` converts every OKLCH declaration
+ * here through OKLab to sRGB and prints WCAG ratios for every pair that can occur.
+ */
+
+:root {
+  /* ---------------------------------------------------------------- surfaces
+     [DESIGN.md] Near-black with a faint red cast. Dark is correct here, not a
+     preference: the operator works at night in an unlit room. */
+  --bg: oklch(0.16 0.008 20);
+  --bg-sunken: oklch(0.13 0.008 20);
+  --surface: oklch(0.21 0.01 20);
+  --surface-raised: oklch(0.25 0.012 20);
+  --border: oklch(0.3 0.008 20);
+  --border-strong: oklch(0.38 0.01 20);
+
+  /* [DESIGN.md] Oxblood. Selection and identity. Deliberately dark (L 0.40) so it sits
+     in a different luminance register from --danger (L 0.66) — the palette is
+     red-dominant, so hue alone could never separate "selected" from "wrong". */
+  --primary: oklch(0.4 0.13 20);
+  --primary-hover: oklch(0.46 0.14 20);
+  --primary-ink: oklch(0.96 0.01 30);
+
+  /* [DESIGN.md] Safelight amber. LIVE and nothing else — a run in progress, the row
+     being probed right now, a streaming result. When nothing is running there is no
+     amber on screen. Never decoration, emphasis, links or headings. */
+  --accent: oklch(0.76 0.14 65);
+  --accent-dim: oklch(0.52 0.09 65);
+
+  /* -------------------------------------------------------- the confidence ramp
+     [DESIGN.md] Luminance and weight, never hue, so it survives greyscale and every
+     form of colour blindness. Explicit tokens rather than opacity, so contrast is
+     guaranteed instead of hoped for. */
+  --ink-latent: oklch(0.63 0.006 40); /* unverified   — present, not yet real  */
+  --ink-developing: oklch(0.8 0.008 60); /* corroborated — developing            */
+  --ink-developed: oklch(0.96 0.004 60); /* confirmed    — fully developed       */
+
+  /* [derived — deviation from DESIGN.md, and the reason is measurement]
+     DESIGN.md specifies oklch(0.52 0.004 40) for `refuted`. Measured, that is 3.52:1 on
+     --bg: below the 4.5:1 floor, and below --ink-subtle, which the same document calls
+     the floor that nothing dimmer may ever cross. Raised to L 0.61, the lowest value
+     that clears 4.5:1 on every fill a refuted row can sit on — canvas, panel, hover and
+     selection.
+
+     That puts it level with --ink-latent in lightness, so "discarded" is carried by the
+     two things that do not cost legibility: the strike-through DESIGN.md already
+     specifies, and --row-refuted below, which sinks the row rather than dimming its
+     text. Refuted is off the ladder, not below its bottom rung — knowing something is
+     false is a result, and a result you have to lean in to read is a bug. */
+  --ink-fixed: oklch(0.61 0.004 40);
+
+  /* -------------------------------------------------------------------- text
+     [DESIGN.md] --ink-subtle is the floor; nothing dimmer carries text, ever.
+
+     Measured caveat, enforced by usage: --ink-subtle clears 4.5:1 on --bg (4.53) and
+     --bg-sunken (4.70) only. On --surface it measures 4.14. It is therefore legal on the
+     canvas and in wells; on panels, rows and popovers the dimmest permitted text is
+     --ink-muted. The ratio DESIGN.md quotes for it (4.6:1) is the canvas figure, so this
+     is the document read strictly rather than a change to it. */
+  --ink: oklch(0.94 0.005 60);
+  --ink-muted: oklch(0.72 0.006 45);
+  --ink-subtle: oklch(0.58 0.005 40);
+
+  /* --------------------------------------------------------------- semantic
+     [DESIGN.md] Hue is never the sole carrier. Every one of these ships colour plus an
+     icon plus a text label; see components/Icon.tsx and the `state` prop on Notice. */
+  --danger: oklch(0.66 0.19 15);
+  --warning: oklch(0.78 0.13 85);
+  --success: oklch(0.72 0.11 150);
+  --info: oklch(0.7 0.09 240);
+
+  /* [derived] Washes behind semantic messages. Kept dark enough that the semantic ink
+     above still clears 4.5:1 sitting on top of them. */
+  --danger-wash: oklch(0.2 0.045 15);
+  --warning-wash: oklch(0.2 0.035 85);
+  --success-wash: oklch(0.2 0.03 150);
+  --info-wash: oklch(0.2 0.03 240);
+
+  /* ------------------------------------------------------------------- rows
+     [derived] A findings row can sit on three fills, so every ramp token is measured
+     against all three. The ceiling is set by --ink-fixed, the dimmest thing a row can
+     contain: any fill lighter than L 0.21 drops it under 4.5:1, which is why selection
+     is a hairline plus a whisper of oxblood rather than a bright band. */
+  --row-hover: oklch(0.185 0.01 20);
+  --row-selected: oklch(0.205 0.024 20);
+
+  /* [derived] The same two states one storey up, for rows that sit on --surface rather
+     than on the canvas — the left nav, chiefly. --row-hover is *lighter* than --bg and
+     *darker* than --surface, so reusing it on a panel makes the item under the pointer
+     recede, which reads as disabled rather than as hovered. */
+  --surface-hover: oklch(0.245 0.012 20);
+
+  /* [derived] A refuted row sinks instead of dimming. This is the second carrier for
+     "discarded" — the first is the strike-through — and unlike dimming it *raises*
+     contrast, so the row stays readable while reading as filed away. */
+  --row-refuted: oklch(0.135 0.008 20);
+
+  /* [derived] The safelight sweep's brightest point. Amber, and only while a run is
+     actually in progress. Dark enough that row text is unaffected by it. */
+  --sweep-peak: oklch(0.24 0.045 65);
+
+  /* --------------------------------------------------------------- controls
+     [derived] Buttons, inputs and the nav's active item. --control sits one step above
+     --surface so a control reads as a control on a panel and on the canvas alike. */
+  --control: oklch(0.25 0.01 20);
+  --control-hover: oklch(0.3 0.012 20);
+  --control-active: oklch(0.22 0.01 20);
+  --nav-active: oklch(0.285 0.016 20);
+
+  /* [derived] The boundary of a form control, where the boundary *is* the affordance —
+     an input's edge, an unchecked checkbox. WCAG 1.4.11 wants 3:1 for those and
+     --border-strong measures 1.93:1 on --bg, so it cannot do this job. --border-strong
+     stays what DESIGN.md made it: a supplementary edge that always has a background
+     change or a focus ring carrying the state alongside it. */
+  --border-control: oklch(0.55 0.012 20);
+
+  /* There is deliberately no --ink-disabled. WCAG exempts disabled controls from the
+     contrast minimum, and taking that exemption measured 3.22:1 on the disabled Add
+     button — under DESIGN.md's own floor rule, which says nothing dimmer than
+     --ink-subtle ever carries text. A control the operator cannot read is a control he
+     cannot diagnose, and every disabled affordance here sits beside the reason it is
+     disabled ("maigret not found on PATH"). Disabled is therefore carried by a sunken
+     fill and the cursor, with the label held at --ink-subtle on --bg-sunken: 4.69:1. */
+
+  /* [derived] Focus. Near-white and warm rather than amber: amber means LIVE, and a
+     focus ring that borrowed it would say a run was in progress every time the operator
+     pressed Tab. Paired with an offset so a dark gap separates ring from control, which
+     is what keeps it at 3:1 against the neighbour and not only the surface. */
+  --focus: oklch(0.84 0.02 40);
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* [derived] Skeletons. Never a spinner in content. */
+  --skeleton: oklch(0.23 0.01 20);
+  --skeleton-sheen: oklch(0.29 0.012 20);
+
+  /* [derived] The one light ground in the app, and it is not the app's.
+     The export preview renders a finished document inside an iframe, and that document
+     paints its own light ground for a reader who will print it or open it in a browser.
+     Without a ground behind the frame the app's near-black shows through whatever margin
+     the document leaves. It is deliberately not measured against any ink token in
+     scripts/contrast.mjs: nothing this stylesheet controls is ever drawn on it, and the
+     document's own contrast is the exporter's problem, not the shell's. */
+  --paper: oklch(1 0 0);
+
+  /* [derived] Text selection and scrollbars. */
+  --selection-bg: oklch(0.35 0.1 20);
+  --scrollbar-thumb: oklch(0.32 0.01 20);
+  --scrollbar-thumb-hover: oklch(0.4 0.012 20);
+
+  /* [derived] Backdrop for the one dialog the app has (destructive confirmation).
+     Alpha, so it is not a contrast pair and not parsed by the contrast script. */
+  --backdrop: oklch(0.08 0.006 20 / 0.72);
+
+  /* ------------------------------------------------------------ typography
+     [DESIGN.md] One family, two variants. Bundled as variable woff2 — the ramp needs
+     weight 450, which only a variable font can render. */
+  --font-sans:
+    'Geist', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+
+  /* [DESIGN.md] Fixed rem, ratio ~1.15. Desktop app at consistent DPI: no fluid clamps. */
+  --text-micro: 0.6875rem; /* 11px — micro labels inside dense panels only        */
+  --text-data: 0.75rem; /* 12px — table cells, metadata, mono data            */
+  --text-ui: 0.8125rem; /* 13px — UI default: buttons, labels, nav           */
+  --text-body: 0.875rem; /* 14px — body prose, doc panel                      */
+  --text-section: 1rem; /* 16px — section headings                           */
+  --text-title: 1.25rem; /* 20px — view titles                                */
+  --text-page: 1.5rem; /* 24px — page titles, rare                          */
+
+  /* [DESIGN.md] The ramp's weights. 450 is why the font is variable. */
+  --weight-latent: 400;
+  --weight-developing: 450;
+  --weight-developed: 600;
+  --weight-fixed: 400;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-prose: 1.6;
+
+  /* [DESIGN.md] Doc and prose columns cap here. Data tables may run past it. */
+  --measure: 68ch;
+
+  /* ---------------------------------------------------------------- spacing
+     [DESIGN.md] 4px base. Section spacing varies deliberately — 12/16/24/40 — rather
+     than a uniform 16 everywhere. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* [DESIGN.md] Small radii only. Nothing pill-shaped: pills read consumer-app, and
+     this is an instrument. */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+
+  /* ---------------------------------------------------------------- structure
+     [DESIGN.md] Three-zone shell, 30px rows. */
+  --nav-width: 200px;
+  --nav-width-collapsed: 48px;
+  --context-width: 320px;
+  --row-height: 30px;
+  --hairline: 1px;
+
+  /* ----------------------------------------------------------------- z-index
+     [DESIGN.md] Never an arbitrary z-value. */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  /* ------------------------------------------------------------------ motion
+     [DESIGN.md] Motion conveys state only. Three motions earn their place: the stream-in
+     stagger, the developing transition, and the safelight sweep. */
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-micro: 150ms; /* hover, focus                */
+  --dur-base: 200ms; /* panel open, state change    */
+  --dur-develop: 280ms; /* confidence promotion        */
+  --stagger-step: 20ms; /* findings streaming in       */
+  --dur-sweep: 1400ms; /* one pass of the safelight   */
+}
+
+/*
+ * [DESIGN.md] Non-negotiable. The stagger becomes instant, developing becomes an
+ * immediate state change, and the sweep becomes a static amber marker.
+ *
+ * Done by zeroing the duration tokens rather than by blanket-disabling animation, so
+ * each component keeps one code path and cannot drift out of compliance. The three
+ * components that need to change *behaviour* rather than speed read
+ * `usePrefersReducedMotion()`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-micro: 0ms;
+    --dur-base: 0ms;
+    --dur-develop: 0ms;
+    --stagger-step: 0ms;
+    --dur-sweep: 0ms;
+  }
+}

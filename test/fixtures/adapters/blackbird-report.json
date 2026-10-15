@@ -1,0 +1,674 @@
+[
+    {
+        "name": "Codeforces",
+        "url": "https://codeforces.com/api/user.info?handles=torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "kwejk.pl",
+        "url": "https://kwejk.pl/uzytkownik/torvalds#/tablica/",
+        "category": "images",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Vivino",
+        "url": "https://api.vivino.com/users/torvalds",
+        "category": "shopping",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "GDBrowser",
+        "url": "https://gdbrowser.com/api/profile/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Codewars",
+        "url": "https://www.codewars.com/api/v1/users/torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Last.fm",
+        "url": "https://www.last.fm/user/torvalds",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Snapchat",
+        "url": "https://www.snapchat.com/@torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Pastebin",
+        "url": "https://pastebin.com/u/torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "lichess.org",
+        "url": "https://lichess.org/api/player/autocomplete?term=torvalds&exists=1",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Giphy (Channel)",
+        "url": "https://giphy.com/channel/torvalds",
+        "category": "images",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Gitea",
+        "url": "https://gitea.com/api/v1/users/torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "GitHub (Gists)",
+        "url": "https://api.github.com/users/torvalds/gists",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "GitHub (User)",
+        "url": "https://api.github.com/users/torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Dailymotion",
+        "url": "https://api.dailymotion.com/user/torvalds?fields=id,username,screenname,description,avatar_720_url,cover_250_url,followers_total,following_total,videos_total,country,created_time,verified,url",
+        "category": "video",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "palnet",
+        "url": "https://www.palnet.io/@torvalds/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "SoundCloud",
+        "url": "https://soundcloud.com/torvalds",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "GOG",
+        "url": "https://www.gog.com/u/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "StackOverflow",
+        "url": "https://api.stackexchange.com/2.3/users?order=desc&sort=name&inname=torvalds&site=stackoverflow",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "PayPal.Me",
+        "url": "https://www.paypal.com/paypalme/torvalds",
+        "category": "finance",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Dating.ru",
+        "url": "https://dating.ru/torvalds/",
+        "category": "dating",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Spotify",
+        "url": "https://open.spotify.com/user/torvalds",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Greasy Fork",
+        "url": "https://greasyfork.org/en/users?q=torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habbo.com",
+        "url": "https://www.habbo.com/api/public/users?name=torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "WordPress.com (Public)",
+        "url": "https://public-api.wordpress.com/rest/v1.1/sites/torvalds.wordpress.com",
+        "category": "blog",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "devRant",
+        "url": "https://devrant.com/api/get-user-id?app=3&username=torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Stripchat",
+        "url": "https://stripchat.com/api/front/users/checkUsername?username=torvalds",
+        "category": "xx NSFW xx",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habbo.es",
+        "url": "https://www.habbo.es/api/public/users?name=torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Patreon",
+        "url": "https://www.patreon.com/torvalds",
+        "category": "finance",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habbo.de",
+        "url": "https://www.habbo.de/api/public/users?name=torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Geocaching",
+        "url": "https://www.geocaching.com/p/?u=torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Wykop",
+        "url": "https://wykop.pl/ludzie/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Mastodon API",
+        "url": "https://mastodon.social/api/v2/search?q=torvalds&limit=1&type=accounts",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Substack",
+        "url": "https://substack.com/api/v1/user/torvalds/public_profile",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Periscope",
+        "url": "https://www.periscope.tv/torvalds",
+        "category": "video",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Pinterest",
+        "url": "https://www.pinterest.com/torvalds/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Xbox Gamertag",
+        "url": "https://www.xboxgamertag.com/search/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habbo.it",
+        "url": "https://www.habbo.it/api/public/users?name=torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habr (Q&A)",
+        "url": "https://qna.habr.com/user/torvalds",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Disqus",
+        "url": "https://disqus.com/api/3.0/users/details?user=username:torvalds&api_key=REDACTED",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Habr (User)",
+        "url": "https://habr.com/ru/users/torvalds/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "pokemonshowdown",
+        "url": "https://pokemonshowdown.com/users/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "XVideos",
+        "url": "https://www.xvideos.com/profiles/torvalds/feed/",
+        "category": "xx NSFW xx",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Docker Hub (User)",
+        "url": "https://hub.docker.com/v2/users/torvalds/",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Docker Hub (Organization)",
+        "url": "https://hub.docker.com/v2/orgs/torvalds/",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Hackaday.io",
+        "url": "https://hackaday.io/torvalds",
+        "category": "hobby",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "MCUUID (Minecraft)",
+        "url": "https://playerdb.co/api/player/minecraft/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Arduino (Forum)",
+        "url": "https://forum.arduino.cc/u/torvalds.json",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "HackerRank",
+        "url": "https://www.hackerrank.com/rest/contests/master/hackers/torvalds/profile",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Audiojungle",
+        "url": "https://audiojungle.net/user/torvalds",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Telegram",
+        "url": "https://t.me/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Donation Alerts",
+        "url": "https://www.donationalerts.com/api/v1/user/torvalds/donationpagesettings",
+        "category": "finance",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "postcrossing",
+        "url": "https://www.postcrossing.com/user/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Dota2.ru",
+        "url": "https://dota2.ru/forum/search/?type=user&keywords=torvalds&sort_by=username",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "TETR.IO",
+        "url": "https://ch.tetr.io/api/users/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Bandlab",
+        "url": "https://www.bandlab.com/api/v1.3/users/torvalds",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "DRIVE2.RU",
+        "url": "https://www.drive2.ru/users/torvalds/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "zhihu",
+        "url": "https://api.zhihu.com/books/people/torvalds/publications?offset=0&limit=5",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Mixcloud",
+        "url": "https://api.mixcloud.com/torvalds/",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Duolingo",
+        "url": "https://www.duolingo.com/2017-06-30/users?username=torvalds&_=1628308619574",
+        "category": "hobby",
+        "status": "FOUND",
+        "metadata": [
+            {
+                "schema": "JSON",
+                "type": "Image",
+                "name": "Avatar",
+                "prefix": "https:",
+                "path": [
+                    "users",
+                    0,
+                    "picture"
+                ],
+                "downloaded": false,
+                "value": "https://simg-ssl.duolingo.com/avatar/default_2"
+            },
+            {
+                "schema": "JSON",
+                "type": "Array",
+                "item-path": [
+                    "title"
+                ],
+                "name": "Courses",
+                "path": [
+                    "users",
+                    0,
+                    "courses"
+                ],
+                "value": [
+                    "Russian",
+                    "Dutch",
+                    "Spanish"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Etoro",
+        "url": "https://www.etoro.com/api/logininfo/v1.1/users/torvalds",
+        "category": "finance",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "HuggingFace",
+        "url": "https://huggingface.co/torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "HudsonRock",
+        "url": "https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-username?username=torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Bitbucket",
+        "url": "https://bitbucket.org/!api/2.0/repositories/torvalds?page=1&pagelen=25&sort=-updated_on&q=&fields=-values.owner%2C-values.workspace",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Minecraft List",
+        "url": "https://minecraftlist.com/api/legacy/players/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "TikTok",
+        "url": "https://www.tiktok.com/oembed?url=https://www.tiktok.com/@torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": [
+            {
+                "schema": "JSON",
+                "type": "String",
+                "name": "Name",
+                "path": [
+                    "author_name"
+                ],
+                "value": "Torvalds"
+            }
+        ]
+    },
+    {
+        "name": "Fansly",
+        "url": "https://apiv3.fansly.com/api/v1/account?usernames=torvalds",
+        "category": "xx NSFW xx",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Figma",
+        "url": "https://www.figma.com/api/profile/handle/torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "MyNickname",
+        "url": "https://mynickname.com/en/search?q=torvalds",
+        "category": "misc",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Roblox",
+        "url": "https://auth.roblox.com/v1/usernames/validate?username=torvalds&birthday=2019-12-31T23:00:00.000Z",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Instagram",
+        "url": "https://www.instagram.com/torvalds/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "MySpace",
+        "url": "https://myspace.com/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "FL.ru",
+        "url": "https://www.fl.ru/users/torvalds/portfolio/",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Ultimate Guitar",
+        "url": "https://www.ultimate-guitar.com/u/torvalds",
+        "category": "hobby",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Twitch",
+        "url": "https://twitchtracker.com/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Neocities",
+        "url": "https://neocities.org/site/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Flipboard",
+        "url": "https://flipboard.com/@torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "RubyGems.org",
+        "url": "https://rubygems.org/api/v1/profiles/torvalds.json",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "JBZD",
+        "url": "https://jbzd.com.pl/uzytkownik/torvalds",
+        "category": "images",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Scratch",
+        "url": "https://api.scratch.mit.edu/accounts/checkusername/torvalds/",
+        "category": "coding",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Internet Archive User Contribution Search",
+        "url": "https://archive.org/advancedsearch.php?q=creator:torvalds&output=json",
+        "category": "misc",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Chess.com",
+        "url": "https://api.chess.com/pub/player/torvalds",
+        "category": "gaming",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Internet Archive Username Mentions",
+        "url": "https://archive.org/advancedsearch.php?q=torvalds&output=json",
+        "category": "misc",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Chocolatey",
+        "url": "https://community.chocolatey.org/profiles/torvalds",
+        "category": "tech",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Sepia Search (PeerTube)",
+        "url": "https://sepiasearch.org/api/v1/search/video-channels?search=%22torvalds%22&start=0&count=10",
+        "category": "video",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "chatango.com",
+        "url": "https://torvalds.chatango.com",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "freesound",
+        "url": "https://freesound.org/people/torvalds/section/stats/?ajax=1",
+        "category": "music",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Keybase",
+        "url": "https://keybase.io/_/api/1.0/user/lookup.json?usernames=torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "Freelancer",
+        "url": "https://www.freelancer.com/api/users/0.1/users?usernames%5B%5D=torvalds&compact=true",
+        "category": "business",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "SEOClerks",
+        "url": "https://www.seoclerks.com/user/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    },
+    {
+        "name": "kik",
+        "url": "https://kik.me/torvalds",
+        "category": "social",
+        "status": "FOUND",
+        "metadata": null
+    }
+]

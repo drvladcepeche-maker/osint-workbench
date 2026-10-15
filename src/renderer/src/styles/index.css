@@ -1,0 +1,24 @@
+/*
+ * The Darkroom.
+ *
+ * Order matters: tokens define the vocabulary, fonts and base set the ground, and the
+ * three component layers may only ever speak in tokens. `npm run design:lint` fails on a
+ * literal colour anywhere under src/renderer, and `npm run design:contrast` measures
+ * every foreground/background pair the app can produce.
+ */
+
+@import './tokens.css';
+@import './fonts.css';
+@import './base.css';
+@import './shell.css';
+@import './controls.css';
+@import './table.css';
+@import './feedback.css';
+/* The view-specific layers. Last, so they may lean on everything above them, and still
+   only ever in tokens. */
+@import './range.css';
+@import './scrub.css';
+@import './selfaudit.css';
+@import './ranking.css';
+@import './brief.css';
+@import './verify.css';

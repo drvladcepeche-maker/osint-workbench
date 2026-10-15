@@ -1,0 +1,826 @@
+/*
+ * Controls.
+ *
+ * DESIGN.md: every interactive component ships all seven states — default, hover, focus,
+ * active, disabled, loading, error. Half-built components don't ship. The states are
+ * declared together here, per component, so a missing one is visible in the source
+ * rather than discovered by tabbing into it.
+ *
+ * Personality lives in the palette, the confidence system and the writing. Not here.
+ * These are standard affordances on purpose: the tool disappears into the task.
+ */
+
+/* ------------------------------------------------------------------- buttons */
+
+.btn {
+  --btn-fill: var(--control);
+  --btn-fill-hover: var(--control-hover);
+  --btn-fill-active: var(--control-active);
+  --btn-ink: var(--ink);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-3);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--btn-fill);
+  color: var(--btn-ink);
+  font-size: var(--text-ui);
+  font-weight: 450;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    background var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--btn-fill-hover);
+  border-color: var(--border-strong);
+}
+
+.btn:active:not(:disabled) {
+  background: var(--btn-fill-active);
+}
+
+/* Disabled recedes into the surface rather than fading out. Fading is what drops a
+   label under the legibility floor; sinking it keeps 4.69:1 and still reads as inert. */
+.btn:disabled {
+  background: var(--bg-sunken);
+  border-color: var(--border);
+  color: var(--ink-subtle);
+}
+
+.btn--primary {
+  --btn-fill: var(--primary);
+  --btn-fill-hover: var(--primary-hover);
+  --btn-fill-active: var(--primary);
+  --btn-ink: var(--primary-ink);
+  border-color: var(--primary-hover);
+  font-weight: 500;
+}
+
+.btn--danger {
+  --btn-ink: var(--danger);
+}
+
+.btn--danger:hover:not(:disabled) {
+  border-color: var(--danger);
+}
+
+/* Quiet: no fill until touched. For repeated row-level actions where a filled button per
+   row would turn a dense table into a wall of chrome. */
+.btn--quiet {
+  --btn-fill: transparent;
+  --btn-ink: var(--ink-muted);
+  border-color: transparent;
+}
+
+.btn--quiet:hover:not(:disabled) {
+  --btn-ink: var(--ink);
+  border-color: var(--border);
+}
+
+.btn--icon {
+  width: 26px;
+  padding: 0;
+}
+
+.btn--wide {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Loading. Not a spinner: a 2px indeterminate line along the button's bottom edge, and a
+   label the caller changes to the present tense. Under reduced motion the line holds
+   still at full width — the button is still visibly busy, it just stops moving. */
+.btn[data-loading='true'] {
+  color: var(--ink-muted);
+  cursor: progress;
+}
+
+.btn[data-loading='true']::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--ink-muted);
+  transform-origin: left;
+  animation: btn-progress 1.1s var(--ease) infinite;
+}
+
+@keyframes btn-progress {
+  0% {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn[data-loading='true']::after {
+    animation: none;
+  }
+}
+
+.btn[aria-invalid='true'] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* -------------------------------------------------------------------- fields */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field + .field {
+  margin-top: var(--space-4);
+}
+
+.label {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
+.hint {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+  max-width: var(--measure);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: var(--hairline) solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  color: var(--ink);
+  font-size: var(--text-ui);
+  transition:
+    border-color var(--dur-micro) var(--ease),
+    background var(--dur-micro) var(--ease);
+}
+
+.textarea {
+  height: auto;
+  min-height: 60px;
+  padding: var(--space-2);
+  line-height: var(--leading-normal);
+  resize: vertical;
+}
+
+.input:hover:not(:disabled),
+.select:hover:not(:disabled),
+.textarea:hover:not(:disabled) {
+  border-color: var(--ink-subtle);
+}
+
+.input:active:not(:disabled),
+.textarea:active:not(:disabled) {
+  background: var(--bg);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--ink-subtle);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  border-color: var(--border);
+  color: var(--ink-subtle);
+  cursor: not-allowed;
+}
+
+.input[aria-invalid='true'],
+.select[aria-invalid='true'],
+.textarea[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+/* An input whose value is a literal — a username, a domain, a hash — is data, and gets
+   the mono face for the same reason the table does: character-level detail matters when
+   you are typing something a tool will probe. */
+.input--data {
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.select {
+  /* Native arrow is drawn by the platform; the padding leaves room for it. */
+  padding-right: var(--space-5);
+  cursor: pointer;
+}
+
+.select option {
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+/* A field that is loading its options rather than empty. */
+.input[data-loading='true'],
+.select[data-loading='true'] {
+  color: transparent;
+  background:
+    linear-gradient(90deg, var(--skeleton), var(--skeleton-sheen), var(--skeleton)) 0 0 / 200% 100%;
+  animation: skeleton-sheen 1.6s linear infinite;
+}
+
+/* ----------------------------------------------------------------- checkbox */
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-ui);
+  line-height: var(--leading-normal);
+  cursor: pointer;
+}
+
+.check__box {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border: var(--hairline) solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition:
+    background var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.check:hover .check__box {
+  border-color: var(--ink-subtle);
+}
+
+.check input:checked + .check__box {
+  background: var(--primary);
+  border-color: var(--primary-hover);
+  /* The tick, not the fill, is what carries "checked" — the fill alone is 1.97:1. */
+  color: var(--primary-ink);
+}
+
+.check input:disabled + .check__box {
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+
+.check input:disabled ~ .check__label {
+  color: var(--ink-subtle);
+}
+
+.check input:focus-visible + .check__box {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* ---------------------------------------------------- copy affordance
+   DESIGN.md: a copy affordance on every literal value, with real confirmation feedback
+   and not a silent success. It is a button wrapping the value itself, so the target is
+   the thing you want rather than a 12px icon beside it. */
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 24px;
+  max-width: 100%;
+  padding: 0 var(--space-1);
+  margin: 0 calc(-1 * var(--space-1));
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-align: left;
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+/* The value yields; the confirmation never does. A long hash in a tight header used to
+   push "Copied." past the button's own overflow, which turned the one thing DESIGN.md
+   insists on — real feedback rather than a silent success — into nothing at all. */
+.copy__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy__said,
+.copy__mark {
+  flex: none;
+}
+
+.copy:hover {
+  background: var(--control);
+}
+
+.copy:active {
+  background: var(--control-active);
+}
+
+.copy__mark {
+  flex: none;
+  color: var(--ink-subtle);
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease);
+}
+
+.copy:hover .copy__mark,
+.copy:focus-visible .copy__mark {
+  opacity: 1;
+}
+
+.copy[data-copied='true'] {
+  color: var(--ink);
+}
+
+.copy[data-copied='true'] .copy__mark {
+  opacity: 1;
+  color: var(--success);
+}
+
+.copy[data-copied='error'] .copy__mark {
+  opacity: 1;
+  color: var(--danger);
+}
+
+/* The word, not just the tick. "Copied." — DESIGN.md's own example of what a success
+   message is allowed to be. */
+.copy__said {
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------- entities
+   Selectable seeds and discoveries. Rectangular, radius-sm, 22px — not pills. DESIGN.md
+   bans pill shapes outright: they read consumer-app, and this is an instrument. */
+
+.entities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A chip is two controls in one outline: the body selects, the pencil opens the editor
+   behind it. Two buttons rather than one with a hidden gesture, because "can I remove
+   entries?" was a real question and an affordance nobody can see is not one. */
+.entity {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition:
+    background var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
+}
+
+.entity[data-selected='true'] {
+  background: var(--row-selected);
+  border-color: var(--border-strong);
+}
+
+.entity[data-open='true'] {
+  border-color: var(--border-control);
+}
+
+.entity__pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* 24px, not 22: WCAG 2.2 SC 2.5.8 wants a 24x24 pointer target, and a chip is a
+     standalone control rather than a word inside a sentence, so the inline exception
+     does not cover it. */
+  height: 24px;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  transition: color var(--dur-micro) var(--ease);
+}
+
+.entity:hover .entity__pick,
+.entity__pick[aria-pressed='true'] {
+  color: var(--ink);
+}
+
+.entity:hover {
+  background: var(--control);
+}
+
+.entity[data-selected='true']:hover {
+  background: var(--row-selected);
+}
+
+/* Separated by a hairline, not by a gap: the two controls belong to one chip, and a gap
+   would make the pencil read as a loose icon floating beside it. */
+.entity__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 22px;
+  border-left: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.entity__edit:hover,
+.entity__edit[aria-expanded='true'] {
+  background: var(--control-hover);
+  color: var(--ink);
+}
+
+.entity__kind {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.entity__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A dot rather than the word "seed" repeated on half the chips. The word is still in the
+   title and in the screen-reader label; the dot is what makes the ratio of supplied to
+   discovered readable at a glance across twenty chips. */
+.entity__seed {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+}
+
+.entity[data-selected='true'] .entity__seed {
+  background: var(--ink);
+}
+
+.entities-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.entities__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ------------------------------------------------------- correcting an entity
+   Opened from one chip, in place, above the launcher. Not a dialog: DESIGN.md bans
+   modal-as-first-thought, and a dialog would hide the chip strip that says what else is
+   in the case — which is exactly the context needed to decide whether to remove one. */
+
+.entity-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 620px;
+  padding: var(--space-3);
+  background: var(--bg-sunken);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.entity-edit__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-data);
+}
+
+.entity-edit__kind {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.entity-edit__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.entity-edit__row .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.entity-edit__row .btn {
+  flex: none;
+}
+
+.entity-edit__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+/* The adapter launcher: one row of buttons, wrapping. */
+.runbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.runbar__label {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+/* Divides "everything in this case" from "the selection". They are different scopes and
+   a run of buttons all the same size hides that. */
+.runbar__sep {
+  width: var(--hairline);
+  height: 18px;
+  background: var(--border);
+}
+
+/* ------------------------------------------------------------ adding an entity
+   Three ways into a case, stacked in order of prominence: a pasted link, a platform and a
+   handle, everything else. Rules rather than boxes — DESIGN.md bans cards as the default
+   container, and a bordered panel per route inside a panel would be three nested ones.
+   The routes are separated by hairlines and read top to bottom.
+
+   Every route is the same three lines: a label, a row of controls, and the canonical value
+   the row produced. That third line is the point of the whole component — the operator
+   watches `platform/handle` being built instead of being asked to compose it. */
+
+.entity-add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* A form does not get wider just because the window did. */
+  max-width: 620px;
+}
+
+.entity-add__route {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.entity-add__route + .entity-add__route {
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.entity-add__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.entity-add__row .select {
+  flex: none;
+  width: 148px;
+}
+
+.entity-add__row .input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+/* The "somewhere else" host sits beside the handle rather than above it: they are one
+   thought — where, and who — and splitting them across two lines reads as two questions. */
+.entity-add__host {
+  flex: 0 1 180px;
+}
+
+.entity-add__row .btn {
+  flex: none;
+}
+
+/* Height is held whether or not there is a readout, so typing a URL does not push the
+   route below it down a line at a time. */
+.entity-add__out {
+  min-height: 18px;
+}
+
+/* 4px, not 8: `.dot-sep` brings its own padding, and at a gap of 8 the separator floats in
+   the middle of 16px of air and stops reading as one. */
+.entity-add__read {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-data);
+  line-height: var(--leading-tight);
+}
+
+/* A refusal is muted, not red. Half of these appear halfway through typing a URL, and a
+   field that turns red at every keystroke is one the operator learns to stop reading. The
+   icon and the word carry the state; DESIGN.md's rule is that hue never carries it alone,
+   and here hue does not carry it at all. */
+.entity-add__read--miss {
+  color: var(--ink-muted);
+}
+
+.entity-add__kind {
+  color: var(--ink-muted);
+}
+
+.entity-add__note {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+/* -------------------------------------------------------------- segmented set */
+
+.segments {
+  display: inline-flex;
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segments .btn {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.segments .btn + .btn {
+  border-left: var(--hairline) solid var(--border);
+}
+
+.segments .btn[aria-pressed='true'],
+/* Tabs are the other honest reading of a segmented control — a Scrub mode switches the
+   panel below it rather than toggling a setting — and both spellings look the same. */
+.segments .btn[aria-selected='true'] {
+  background: var(--control);
+  color: var(--ink);
+}
+
+.segments .btn:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+}
+
+/* ------------------------------------------------- per-run adapter options
+   Inline disclosure under the launcher, not a dialog. DESIGN.md bans modal-as-first-
+   thought and it is right to here: a modal would cover the entity the run is aimed at
+   with the form asking what to aim at it.
+
+   One adapter needs this today — hibp-passwords, which tests a live password that must
+   never be written anywhere — so the block is sized for prose rather than for a grid of
+   fields. If a second adapter ever needs options, this is where they go. */
+
+.runform {
+  max-width: var(--measure);
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg-sunken);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.runform__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+}
+
+.runform__title {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.runform__head .btn--icon {
+  margin-left: auto;
+}
+
+/* The mechanism, shown beside the field it describes rather than in the doc panel.
+   Understanding the mechanism is the reason the product exists, and this is the one
+   mechanism the operator is asked to trust with a real secret. */
+.runform__mech {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  background: var(--bg);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.runform__wire {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-micro);
+  color: var(--ink-muted);
+}
+
+.runform__wire-label {
+  flex: none;
+}
+
+/* The five characters that actually leave the machine, computed from what has been
+   typed. Not amber: nothing is running yet, and amber means live. */
+.runform__prefix {
+  padding: 2px var(--space-2);
+  background: var(--control);
+  border: var(--hairline) solid var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-data);
+  letter-spacing: 0.08em;
+}
+
+.runform__wire-rest {
+  min-width: 0;
+}
+
+.runform__note {
+  margin-top: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+.runform__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Export preview.
+   Rendered in a `sandbox=""` iframe, so the document is inert: the case may contain bios
+   and display names harvested from sites this app cannot vouch for. Bordered rather than
+   floated — it is a panel in the reading order, not an overlay. */
+.export-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: var(--bg-sunken);
+}
+
+.export-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.export-preview__frame {
+  width: 100%;
+  height: 460px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  /* The exported document paints its own light ground; without this the iframe shows the
+     app's near-black through any margin the document leaves. */
+  background: var(--paper);
+}

@@ -1,0 +1,721 @@
+/*
+ * Feedback: notices, progress, skeletons, empty states, the doc panel, the one dialog.
+ *
+ * The rule underneath all of it is DESIGN.md's: never dramatize, and never claim to know
+ * more than you do. A spinner is a claim that something is happening with no evidence
+ * for it; an empty state that says "No findings." is a claim that there is nothing to
+ * say. Both are lies this file exists to avoid telling.
+ */
+
+/* -------------------------------------------------------------------- notices
+   Colour plus an icon plus a text label, always. The palette is red-and-amber dominant,
+   which is exactly the axis red-green colour blindness compresses, so hue is never
+   allowed to be the only thing separating "done" from "failed". */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-6);
+  border-block: var(--hairline) solid var(--border);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.notice__icon {
+  flex: none;
+  margin-top: 2px;
+}
+
+.notice__label {
+  flex: none;
+  font-weight: 500;
+}
+
+.notice__body {
+  min-width: 0;
+  color: var(--ink);
+}
+
+.notice--danger {
+  background: var(--danger-wash);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.notice--warning {
+  background: var(--warning-wash);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.notice--success {
+  background: var(--success-wash);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.notice--info {
+  background: var(--info-wash);
+  border-color: var(--info);
+  color: var(--info);
+}
+
+/* Inline form error, under the field it belongs to. */
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--danger);
+  font-size: var(--text-micro);
+}
+
+/* ------------------------------------------------------------- honest progress
+ * DESIGN.md: never a bare spinner for a tool run. Maigret probes 3000 sites and takes
+ * minutes; a spinner asserts "working" and tells you nothing you could act on. This
+ * block shows the real count, the site being hit right now, the hits so far and elapsed
+ * time — and when the tool does not report a count, it says so rather than inventing a
+ * bar.
+ */
+
+.run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.run__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-ui);
+}
+
+.run__tool {
+  font-weight: 500;
+}
+
+/* The one place amber is allowed to sit still: a live run's marker. It does not pulse —
+   nothing in this app flashes, including live-progress indicators. */
+.run__live {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.run__state {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.run__line {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run__line strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* Determinate only when the tool actually reported a denominator. */
+.run__bar {
+  height: 2px;
+  background: var(--control);
+  overflow: hidden;
+}
+
+/* Scaled, not resized. The fill is always full width and `--run-progress` (0..1) drives
+   a transform, so a job that reports progress twice a second never triggers layout. */
+.run__bar-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(var(--run-progress, 0));
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease);
+}
+
+/* No denominator: an indeterminate rule that says nothing about how far along it is.
+   It reports "still moving", which is the only thing that is actually known. */
+.run__bar--unknown .run__bar-fill {
+  width: 33%;
+  transform: none;
+  animation: run-indeterminate 1.8s var(--ease) infinite alternate;
+}
+
+@keyframes run-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run__bar--unknown .run__bar-fill {
+    animation: none;
+    transform: none;
+    width: 100%;
+    background: var(--accent-dim);
+  }
+}
+
+.run__target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 22px;
+  padding: 0 var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* -------------------------------------------------------------------- skeletons
+   Skeletons, not spinners, for content that is loading. A skeleton is honest about the
+   shape of what is coming; a spinner is honest about nothing. */
+
+.skeleton {
+  background:
+    linear-gradient(90deg, var(--skeleton), var(--skeleton-sheen), var(--skeleton)) 0 0 / 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeleton-sheen 1.6s linear infinite;
+}
+
+@keyframes skeleton-sheen {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--skeleton);
+  }
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--row-height);
+  padding: 0 var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.skeleton-row .skeleton {
+  height: 8px;
+}
+
+/* --------------------------------------------------------------- empty states
+   Not "No findings." What the view does, what to feed it, and one concrete example.
+   An empty view is the moment the operator is most willing to read, and the cheapest
+   place in the app to teach something. */
+
+.empty {
+  max-width: var(--measure);
+  padding: var(--space-10) var(--space-6);
+}
+
+.empty__title {
+  font-size: var(--text-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.empty__body {
+  margin-top: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.empty__body + .empty__body {
+  margin-top: var(--space-3);
+}
+
+.empty__example {
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-sunken);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.empty__example-label {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.empty__example-body {
+  margin-top: var(--space-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+  /* Every worked example in the app is laid out in columns by hand, and without this the
+     newlines collapse and it runs together as one paragraph — which is exactly the thing
+     the example is supposed to be clearer than. `pre-wrap`, not `pre`, so an over-long
+     line still wraps inside the well rather than scrolling the page sideways. */
+  white-space: pre-wrap;
+}
+
+.empty__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+/* ------------------------------------------------------------------- doc panel
+ * The adapter's mandatory `doc` block. Six fields: what / how / why / better at /
+ * worse at / how it lies to you.
+ *
+ * This is a primary product feature, not a detail. The operator's stated reason for
+ * building the app is understanding mechanisms, so this is typeset as prose to be read —
+ * 14px, 1.6 leading, real space between fields — rather than compressed into the
+ * smallest thing that would fit beside a table.
+ */
+
+.doc {
+  padding: var(--space-4) var(--space-4) var(--space-10);
+}
+
+.doc__tool {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.doc__tool-name {
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+
+.doc__field + .doc__field {
+  margin-top: var(--space-5);
+}
+
+.doc__field {
+  padding-top: var(--space-4);
+}
+
+.doc__field + .doc__field {
+  border-top: var(--hairline) solid var(--border);
+}
+
+.doc__label {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
+.doc__hint {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.doc__text {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+  /* Free text from an adapter author. It must not be able to push the panel wider than
+     the panel. */
+  overflow-wrap: break-word;
+}
+
+/* "How it lies to you" is the field the operator most needs and least wants to read.
+   It gets the same weight as the rest and one extra beat of space above it, not a
+   warning colour — the data alarms, the chrome does not. */
+.doc__field--falsePositives {
+  margin-top: var(--space-6);
+}
+
+/* ---------------------------------------------------------- detail definition list */
+
+.detail {
+  padding: var(--space-4);
+}
+
+.detail__row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.detail__key {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.detail__value {
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--text-data);
+  overflow-wrap: break-word;
+}
+
+.detail__claim {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+/* A raw output well. Sunken, mono, scrolls on its own. */
+.raw {
+  max-height: 320px;
+  overflow: auto;
+  padding: var(--space-3);
+  background: var(--bg-sunken);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------- dialog
+   The app has one. DESIGN.md: modal as first thought is banned — the right panel and
+   inline disclosure are exhausted first — so this is reserved for a confirmation the
+   operator must not be able to scroll past. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-backdrop);
+  background: var(--backdrop);
+}
+
+.dialog {
+  position: fixed;
+  z-index: var(--z-modal);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - var(--space-16)));
+  padding: var(--space-5);
+  background: var(--surface-raised);
+  border: var(--hairline) solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.dialog__title {
+  font-size: var(--text-section);
+  font-weight: 600;
+}
+
+.dialog__body {
+  margin-top: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+/* ------------------------------------------------------------------- inline bits */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 18px;
+  padding: 0 var(--space-2);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+.tag--seed {
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  white-space: nowrap;
+}
+
+.stat__n {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot-sep {
+  color: var(--ink-subtle);
+  padding: 0 var(--space-1);
+}
+
+/* Icon-plus-word marks that have to stay on the row's single 30px line. */
+.inline-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.inline-marks + .inline-marks {
+  margin-left: var(--space-2);
+}
+
+/* Semantic ink for a mark that is not a whole Notice. Colour is never alone here: each
+   one ships its icon and its word. */
+.state-warning {
+  color: var(--warning);
+}
+
+.state-danger {
+  color: var(--danger);
+}
+
+.state-success {
+  color: var(--success);
+}
+
+/* ------------------------------------------------------------------ the plan
+   What a click is about to do, before it does it.
+
+   Rules on a sunken well, not a card and not a dialog. It sits between the launcher that
+   produced it and the table it will fill, which is the reading order: what I asked for,
+   what that means, where the answers land. A modal here would cover the entity strip the
+   operator needs in order to judge whether the plan is the one he wanted. */
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-sunken);
+  border-top: var(--hairline) solid var(--border);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.plan__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.plan__count {
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+.plan__list,
+.plan__reasons {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 30px rows on hairlines, matching the findings table. A plan is a table of intentions
+   and reads best in the same density as the table of results. */
+.plan__row,
+.plan__reasons li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-height: var(--row-height);
+  padding: var(--space-1) 0;
+  border-top: var(--hairline) solid var(--border);
+  font-size: var(--text-data);
+}
+
+.plan__row:first-child,
+.plan__reasons li:first-child {
+  border-top: 0;
+}
+
+.plan__kind {
+  flex: none;
+  width: 76px;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.plan__entity {
+  flex: none;
+  width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.plan__tools {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ink-muted);
+  line-height: var(--leading-normal);
+}
+
+.plan__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.plan__aside-title {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
+/* The honest half. An adapter that does not accept a kind has not failed — it cannot
+   answer — so this is muted prose rather than a warning colour, and it wraps rather than
+   truncating, because the sentence is the whole point of the row. */
+.plan__why {
+  flex: 1 1 260px;
+  min-width: 0;
+  color: var(--ink-muted);
+  line-height: var(--leading-normal);
+}
+
+/* ----------------------------------------------------------------- the wave
+   Many runs at once. One run keeps its full `.run` card; two or more collapse into this,
+   because fourteen stacked cards hide the only number worth having. */
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.queue__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-ui);
+}
+
+.queue__title {
+  font-weight: 500;
+}
+
+.queue__list {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.queue__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--row-height);
+  border-top: var(--hairline) solid var(--border);
+  font-size: var(--text-data);
+}
+
+.queue__row:first-child {
+  border-top: 0;
+}
+
+/* A settled row recedes rather than disappearing: the wave's denominator only means
+   something if the finished ones are still visible above the running ones. */
+.queue__row[data-state='done'],
+.queue__row[data-state='cancelled'] {
+  color: var(--ink-muted);
+}
+
+.queue__row[data-state='failed'],
+.queue__row[data-state='timeout'] {
+  color: var(--ink-muted);
+}
+
+.queue__tool {
+  flex: none;
+  width: 116px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue__entity {
+  flex: none;
+  width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue__line {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-muted);
+}
+
+.queue__state {
+  flex: none;
+  width: 68px;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+/* Holds the column a settled row's cancel button vacated, so the rows stay a grid. */
+.queue__spacer {
+  flex: none;
+  width: 24px;
+}
+
+/* The amber marker means live, so a wave in which nothing is running loses it. */
+.queue__row[data-state='running'] .queue__line {
+  color: var(--ink);
+}

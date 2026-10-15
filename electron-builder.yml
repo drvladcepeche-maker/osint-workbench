@@ -1,0 +1,95 @@
+# Packaging for Windows. `npm run dist` is the one command.
+#
+# Two targets, both x64:
+#   nsis      — the installer he actually uses. Per-user, so no UAC prompt.
+#   portable  — a single .exe that runs from anywhere. Useful on a machine he does not
+#               want to install on, and useful here as a way to test the packaged app
+#               without touching the installed copy.
+#
+# There is **no code signing certificate**, and one is not faked. See ARCHITECTURE.md
+# for what SmartScreen does about that and how to get past it.
+
+appId: dev.osint-workbench.app
+productName: OSINT Workbench
+copyright: Copyright © 2026 OSINT Workbench contributors
+
+directories:
+  buildResources: build
+  output: release
+
+# An **allowlist**, and deliberately so.
+#
+# The built app is `out/` plus `package.json`; everything else in the repo is source,
+# scratch or personal case data. An exclusion list has to be right about every one of
+# those, and it silently stops being right the moment anything new appears — which it
+# did: a stray Chromium profile directory left in the repo by a dev run held two files
+# open and every `npm run dist` failed with a bare `EBUSY: resource busy or locked` and
+# no filename. With an allowlist a stray directory is simply not looked at.
+#
+# Production `node_modules` are collected separately by electron-builder (see the
+# "searching for node modules" step) and are unaffected by this list, so `better-sqlite3`
+# still ships. Runtime files come in through `extraResources` below.
+files:
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+  - package.json
+
+# The tray icon and the example config are read from disk at runtime, so they must land
+# outside app.asar where `nativeImage.createFromPath` and a plain `readFileSync` can see
+# them. `assets/` matches what `assetPath()` in src/main/index.ts looks for.
+extraResources:
+  - from: resources
+    to: assets
+  - from: config/example.config.json
+    to: assets/example.config.json
+
+# better-sqlite3's N-API prebuild. A .node inside an asar cannot be dlopen'd.
+asarUnpack:
+  - '**/*.node'
+
+win:
+  icon: build/icon.ico
+  # No `publisherName`: in electron-builder 26 it lives under `win.signtoolOptions` and
+  # is purely a signature-verification field, so it means nothing without a certificate.
+  # The publisher shown in Add/Remove Programs comes from `author` in package.json.
+  artifactName: ${productName} ${version} ${arch}.${ext}
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+
+nsis:
+  # Per-user install under %LOCALAPPDATA%\Programs — no admin, no elevation prompt.
+  perMachine: false
+  oneClick: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: OSINT Workbench
+  menuCategory: false
+  installerIcon: build/installer-icon.ico
+  uninstallerIcon: build/installer-icon.ico
+  installerHeaderIcon: build/icon.ico
+  # **The uninstaller must never touch the user's cases.** Two things make that true:
+  #   1. The data root is chosen by the user (default `Documents/OSINT Workbench`) (see the data-root block in
+  #      src/main/index.ts), which is nowhere near the install directory NSIS removes.
+  #   2. This flag, which stops NSIS deleting the app's userData — the only thing there
+  #      is `data-location.json`, and losing it would orphan the data directory.
+  # Uninstalling removes the program. An investigation is not part of the program.
+  deleteAppDataOnUninstall: false
+  # Never launch the app when the installer finishes. A silent upgrade must not steal
+  # focus from whatever the user is doing - they open it from the shortcut themselves.
+  runAfterFinish: false
+  artifactName: ${productName} ${version} Setup.${ext}
+
+portable:
+  artifactName: ${productName} ${version} Portable.${ext}
+  # Without this the portable exe unpacks to %TEMP% under a random name each launch,
+  # which breaks the single-instance lock and gives userData a new path every time.
+  unpackDirName: osint-workbench
+
+# Nothing is published anywhere; this is a local tool.
+publish: null

@@ -1,0 +1,312 @@
+/*
+ * The Scrub view.
+ *
+ * The visual argument here is that **inspection is the default state and writing is the
+ * exception**. So the field table gets the space and the panel weight, the two write
+ * actions sit under it rather than beside it, and the destructive one has to be asked for
+ * twice. Risk class is carried by a word in a tag, not by a row colour — a red row would
+ * be fear framing, and DESIGN.md bans that outright.
+ */
+
+.scrub {
+  position: relative;
+}
+
+/* ------------------------------------------------------------ drag and drop */
+
+/* The whole view is the drop target, not a small dashed box inside it. Dropping files
+   on a window is the primary interaction, so the target is the window. */
+.scrub__drop {
+  position: absolute;
+  inset: var(--space-3);
+  z-index: var(--z-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border-control);
+  border-radius: var(--radius-lg);
+  background: var(--backdrop);
+  pointer-events: none;
+}
+
+.scrub__drop-text {
+  color: var(--ink);
+  font-size: var(--text-section);
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.scrub .panel + .panel,
+.scrub .panel + .scrub__actions,
+.scrub__actions + .scrub__hint,
+.scrub__hint + .scrub__confirm {
+  margin-top: var(--space-4);
+}
+
+.scrub__lede {
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+.scrub__busy {
+  padding: var(--space-4) 0;
+}
+
+.scrub__busy-line {
+  margin-bottom: var(--space-3);
+  color: var(--accent);
+  font-size: var(--text-ui);
+}
+
+.scrub__problems {
+  margin: var(--space-4) 0;
+  padding-left: var(--space-5);
+  max-width: var(--measure);
+}
+
+.scrub__problems li {
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.scrub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.scrub__hint {
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+/* ------------------------------------------------------------- the findings */
+
+/*
+ * This is the one table in the app that is read rather than scanned.
+ *
+ * `.table` is built for dense 30px rows of findings and truncates every cell with an
+ * ellipsis, which is right there and wrong here: the "why it matters" column is the whole
+ * reason the view exists, and a sentence cut off at "unique hardware ID - lin…" teaches
+ * nobody anything. So rows grow to their content, and the columns are given explicit
+ * widths because `table-layout: fixed` otherwise hands them out evenly.
+ */
+.scrub__table th,
+.scrub__table td {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  vertical-align: top;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.scrub__table tbody tr {
+  height: auto;
+}
+
+/* One table per file, all of them in one scrolling column: a sticky header pins every
+   table's header to the top of the same viewport at once, so they stack on each other
+   and float over whichever rows happen to be there. The panel header above each table
+   already says which file it belongs to. */
+.scrub__table thead th {
+  position: static;
+}
+
+/* ExifTool keys are long and unbreakable — `ExifIFD:DateTimeOriginal` is 23 characters
+   with no space in it — so without this they overflow into the class column instead of
+   wrapping. `overflow: visible` above is what makes that visible rather than clipped. */
+.scrub__table td:nth-child(1),
+.scrub__audit td:nth-child(2) {
+  overflow-wrap: anywhere;
+}
+
+.scrub__table th:nth-child(1) {
+  width: 23%;
+}
+
+.scrub__table th:nth-child(2) {
+  width: 6.5rem;
+}
+
+.scrub__table th:nth-child(3) {
+  width: 26%;
+}
+
+.scrub__value .copy {
+  max-width: 100%;
+  text-align: left;
+}
+
+/* `.copy__value` truncates by design — it is normally a hash or a URL in a dense row.
+   In this view the value IS the content, so it wraps instead. */
+.scrub__value .copy__value,
+.scrub__gps .copy__value {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.scrub__why {
+  color: var(--ink-muted);
+  line-height: var(--leading-normal);
+}
+
+/* Weight, not hue: a sensitive field reads as heavier ink on the same row background,
+   which survives greyscale and does not turn the table into a threat display. */
+.scrub__table tr[data-risk='SENSITIVE'] td {
+  color: var(--ink-developed);
+}
+
+.scrub__table tr[data-risk='IDENTIFYING'] td {
+  color: var(--ink-developing);
+}
+
+/* -------------------------------------------------------------- in place */
+
+.scrub__confirm {
+  max-width: var(--measure);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border: var(--hairline) solid var(--danger);
+  border-radius: var(--radius-md);
+}
+
+.scrub__confirm-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+  font-size: var(--text-section);
+  font-weight: 600;
+}
+
+.scrub__confirm-body {
+  margin-bottom: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+/* ------------------------------------------------------------------ result */
+
+.scrub__result-line {
+  max-width: var(--measure);
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.scrub__residue {
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-5);
+}
+
+.scrub__residue li {
+  margin-bottom: var(--space-1);
+}
+
+.scrub .detail + .notice,
+.scrub .detail + .scrub__actions,
+.scrub .notice + .scrub__actions {
+  margin-top: var(--space-3);
+}
+
+/* ------------------------------------------------------------------- audit */
+
+.scrub__gps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.scrub__nogps {
+  color: var(--ink-subtle);
+}
+
+.scrub__top {
+  margin-top: 2px;
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  max-width: 40ch;
+  white-space: normal;
+}
+
+/* --------------------------------------------------------------- toolchain */
+
+.scrub__toolchain {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.scrub__toolchain-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+  cursor: pointer;
+}
+
+.scrub__toolchain-head:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.scrub__toolchain .detail {
+  margin-top: var(--space-3);
+}
+
+.scrub__toolchain-note {
+  max-width: var(--measure);
+  margin-top: var(--space-3);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* The audit table reads like the findings table and needs the same escape from `.table`'s
+   ellipsis. It matters more here: the column being cut off was the GPS coordinate, which
+   is the single most consequential value the whole sweep produces. */
+.scrub__audit th,
+.scrub__audit td {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  vertical-align: top;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.scrub__audit tbody tr {
+  height: auto;
+}
+
+.scrub__audit thead th {
+  position: static;
+}
+
+.scrub__audit th:nth-child(1) {
+  width: 4.5rem;
+}
+
+.scrub__audit th:nth-child(2) {
+  width: 26%;
+}
+
+.scrub__audit th:nth-child(3) {
+  width: 30%;
+}
+
+.scrub__audit th:nth-child(5) {
+  width: 6rem;
+}

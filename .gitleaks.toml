@@ -1,0 +1,13 @@
+# Allowlist for known false positives. Everything else is scanned normally.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Geolocation round keys look like API keys; the Discord id is an obvious placeholder"
+paths = [
+  '''resources/geoint/.*''',
+  '''spikes/geoint/.*''',
+]
+regexes = [
+  '''123456789012345678''',
+]

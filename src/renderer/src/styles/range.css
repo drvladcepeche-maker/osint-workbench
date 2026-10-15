@@ -1,0 +1,956 @@
+/*
+ * The Range.
+ *
+ * Two rules from DESIGN.md shape almost every choice in here:
+ *
+ *  - **Amber means live and nothing else.** The spike used gold for hints, the score and
+ *    the atlas badge. All three are recoloured to neutral ink here, and `--accent`
+ *    appears in exactly one place — the imagery load line, which is the only moment
+ *    something is genuinely in flight.
+ *  - **Panels and rules, not cards.** The reveal, the lesson and the sun aid are stacked
+ *    sections separated by hairlines rather than floating boxes.
+ *
+ * The one place colour carries meaning on its own axis is the country grid's
+ * right/wrong marking, and there it is always paired with an icon.
+ */
+
+.range {
+  /* So the drill can stack on its own when the middle column is narrow, independently of
+     what the nav and the context panel are doing on either side of it. */
+  container-type: inline-size;
+}
+
+/* ------------------------------------------------------------------- tiers */
+
+.range__tiers {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+  background: var(--bg-sunken);
+  flex: 0 0 auto;
+}
+
+.range__tier {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--space-2) var(--space-2);
+  background: var(--control);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.range__tier:hover {
+  background: var(--control-hover);
+  color: var(--ink);
+}
+
+.range__tier:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.range__tier[aria-selected='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-ink);
+}
+
+.range__tier-name {
+  font-size: var(--text-ui);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.range__tier[aria-selected='true'] .range__tier-name {
+  color: var(--primary-ink);
+}
+
+/* -------------------------------------------------------------------- grid */
+
+.range__grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+}
+
+/* Below this the two columns would each be too narrow to do their job — the photograph
+   stops being readable well before the country grid stops fitting — so they stack and
+   the imagery keeps the larger share. Reading the picture is the task. */
+@container (max-width: 900px) {
+  .range__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(260px, 52%) minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------------ stage */
+
+.stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-sunken);
+}
+
+.stage__flat,
+.stage__pano {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.stage__flat[data-dragging],
+.stage__pano[data-dragging] {
+  cursor: grabbing;
+}
+
+.stage__pano:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: calc(var(--focus-offset) * -1);
+}
+
+.stage__flat {
+  overflow: hidden;
+}
+
+.stage__img {
+  position: absolute;
+  transform-origin: 0 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  max-width: none;
+}
+
+.stage__badges {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  max-width: 70%;
+}
+
+.badge {
+  padding: 2px var(--space-2);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-tight);
+}
+
+.badge--strong {
+  color: var(--ink);
+  border-color: var(--border-strong);
+}
+
+.stage__msg {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  text-align: center;
+  background: var(--bg-sunken);
+}
+
+/* The one legitimate amber in this view: something is actually in flight. */
+.stage__msg-text {
+  color: var(--accent);
+  font-size: var(--text-ui);
+  max-width: 46ch;
+  line-height: var(--leading-prose);
+}
+
+.stage__msg-icon + .stage__msg-text {
+  color: var(--ink-muted);
+}
+
+.stage__msg-icon {
+  color: var(--warning);
+}
+
+.stage__attrib {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-3);
+  z-index: var(--z-sticky);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+/* A text button that reads as a link, without being an anchor the CSP has to police. */
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--ink-developed);
+}
+
+.link:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* -------------------------------------------------------------------- side */
+
+.range__side {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: var(--hairline) solid var(--border);
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+/* The map must not be squeezed to a strip by a long reveal below it — the reveal is
+   about a distance you are meant to look at on the map. */
+.range__guess {
+  flex: 1 1 auto;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.range__countries {
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+}
+
+.range__prompt {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-ui);
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.range__cgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-1);
+}
+
+.range__country {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--control);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-ui);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
+}
+
+.range__country:hover:not(:disabled) {
+  background: var(--control-hover);
+}
+
+.range__country:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.range__country[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-ink);
+}
+
+/* Colour plus an icon plus position, never colour alone. */
+.range__country[data-verdict='truth'] {
+  background: var(--success-wash);
+  border-color: var(--success);
+  color: var(--ink);
+}
+
+.range__country[data-verdict='wrong'] {
+  background: var(--danger-wash);
+  border-color: var(--danger);
+  color: var(--ink);
+}
+
+.range__country:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.range__note,
+.range__about {
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+  border-top: var(--hairline) solid var(--border);
+}
+
+/* --------------------------------------------------------------------- map */
+
+.gmap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sunken);
+}
+
+.gmap__svg {
+  flex: 1;
+  min-height: 260px;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.gmap__svg[data-revealed] {
+  cursor: default;
+}
+
+/* Land has to be plainly visible: you cannot place a pin on a coastline you cannot see.
+   `--border-control` is the one edge token measured to carry a 3:1 outline, and it is
+   what a control uses for exactly this reason. */
+.gmap__land {
+  fill: var(--surface-raised);
+  stroke: var(--border-control);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.gmap__graticule {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Orientation for the home tier, from the index's own area names. Without something
+   named, a country outline at 300 km scale is a shape you cannot navigate. */
+.gmap__anchor-dot {
+  fill: var(--ink-subtle);
+}
+
+.gmap__anchor-label {
+  fill: var(--ink-muted);
+  paint-order: stroke;
+  stroke: var(--bg-sunken);
+  /* Non-scaling, or the halo is measured in map degrees: at a country zoom one user unit
+     is about 50 device pixels, so a stroke of 3 became a 150px black blob that covered
+     the country it was labelling. Font size is set inline, in user units, for the same
+     reason. */
+  vector-effect: non-scaling-stroke;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.gmap__radius {
+  fill: var(--primary);
+  fill-opacity: 0.18;
+  stroke: var(--primary-hover);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.gmap__link {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.gmap__pin-halo {
+  fill-opacity: 0.28;
+}
+
+.gmap__pin-dot {
+  stroke: var(--bg-sunken);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.gmap__pin--guess .gmap__pin-halo,
+.gmap__pin--guess .gmap__pin-dot {
+  fill: var(--info);
+}
+
+.gmap__pin--truth .gmap__pin-halo,
+.gmap__pin--truth .gmap__pin-dot {
+  fill: var(--success);
+}
+
+.gmap__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+.gmap__key {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  margin-left: var(--space-3);
+}
+
+.gmap__key:first-child {
+  margin-left: 0;
+}
+
+.gmap__key--guess {
+  background: var(--info);
+}
+
+.gmap__key--truth {
+  background: var(--success);
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.range__controls {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.range__hints {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.range__hint-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--space-2);
+  background: var(--control);
+  border: var(--hairline) solid var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-ui);
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease);
+}
+
+.range__hint-btn:hover:not(:disabled) {
+  background: var(--control-hover);
+}
+
+.range__hint-btn:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.range__hint-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.range__hint-cost {
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+.range__hint-out {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: var(--bg-sunken);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.range__hint-line {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+.range__hint-line + .range__hint-line {
+  margin-top: var(--space-2);
+}
+
+.range__hint-line strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.range__radius-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.range__slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--primary-hover);
+}
+
+.range__slider:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.range__radius-value {
+  min-width: 7ch;
+  text-align: right;
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ reveal */
+
+.range__result {
+  flex: 0 0 auto;
+  padding: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+  background: var(--bg-sunken);
+}
+
+.range__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-title);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.range__score[data-verdict='good'] {
+  color: var(--success);
+  align-items: center;
+}
+
+.range__score[data-verdict='bad'] {
+  color: var(--danger);
+  align-items: center;
+}
+
+.range__score-n {
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.range__score-unit {
+  font-size: var(--text-data);
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.range__score-sub {
+  margin-top: var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+.range__score-sub strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.range__breakdown {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+  font-size: var(--text-micro);
+}
+
+.range__breakdown > div {
+  display: contents;
+}
+
+.range__breakdown dt {
+  color: var(--ink-subtle);
+}
+
+.range__breakdown dd {
+  color: var(--ink);
+  text-align: right;
+}
+
+.range__verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.range__verdict[data-verdict='good'] {
+  background: var(--success-wash);
+  color: var(--ink);
+}
+
+.range__verdict[data-verdict='warn'] {
+  background: var(--warning-wash);
+  color: var(--ink);
+}
+
+.range__verdict[data-verdict='bad'] {
+  background: var(--danger-wash);
+  color: var(--ink);
+}
+
+.range__verdict svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.range__run {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.range__run strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ lesson */
+
+.lesson,
+.aid {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.lesson__title,
+.aid__title {
+  margin-bottom: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.lesson__caveat {
+  margin-bottom: var(--space-2);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+.lesson__step + .lesson__step {
+  margin-top: var(--space-3);
+}
+
+.lesson__label {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 600;
+}
+
+.lesson__body {
+  color: var(--ink);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+.lesson__where {
+  color: var(--ink-muted);
+}
+
+.lesson__atlas {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: var(--hairline) solid var(--border);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+.aid__rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-micro);
+}
+
+.aid__rows > div {
+  display: contents;
+}
+
+.aid__rows dt {
+  color: var(--ink-subtle);
+}
+
+.aid__rows dd {
+  color: var(--ink);
+}
+
+.aid .link {
+  margin-top: var(--space-2);
+  font-size: var(--text-micro);
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------------- atlas */
+
+.atlas {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  background: var(--bg);
+}
+
+.atlas__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-right: var(--hairline) solid var(--border);
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+
+.atlas__nav-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.atlas__title {
+  flex: 1;
+  font-size: var(--text-section);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.atlas__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.atlas__group {
+  margin: var(--space-3) 0 var(--space-1);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.atlas__group:first-child {
+  margin-top: 0;
+}
+
+.atlas__item {
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.atlas__item:hover {
+  background: var(--row-hover);
+  color: var(--ink);
+}
+
+.atlas__item:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: calc(var(--focus-offset) * -1);
+}
+
+.atlas__item[aria-current='true'] {
+  background: var(--nav-active);
+  color: var(--ink);
+}
+
+.atlas__body {
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-8);
+}
+
+.atlas__heading {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-title);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.atlas__code {
+  margin-left: var(--space-2);
+  font-size: var(--text-data);
+  color: var(--ink-muted);
+}
+
+.atlas__why {
+  max-width: var(--measure);
+  margin-bottom: var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.atlas__how {
+  max-width: var(--measure);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.atlas__none {
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.atlas__tells {
+  max-width: var(--measure);
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-5);
+}
+
+.atlas__tells li {
+  margin-bottom: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.atlas__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2) var(--space-5);
+  max-width: var(--measure);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.atlas__fact {
+  display: contents;
+}
+
+.atlas__fact-key {
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+}
+
+.atlas__fact-value {
+  color: var(--ink);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.clue {
+  max-width: var(--measure);
+  padding: var(--space-3) 0;
+  border-top: var(--hairline) solid var(--border);
+}
+
+.clue__value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+
+/* An unconfirmed claim is marked, and marked with a word rather than only a colour. */
+.clue__unverified {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px var(--space-2);
+  border: var(--hairline) solid var(--warning);
+  border-radius: var(--radius-sm);
+  background: var(--warning-wash);
+  color: var(--ink);
+  font-size: var(--text-micro);
+  font-weight: 400;
+}
+
+.clue__means {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+}
+
+.clue__where,
+.clue__note {
+  margin-top: var(--space-2);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}

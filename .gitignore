@@ -1,0 +1,76 @@
+# Personal case data — NEVER commit
+cases/
+phase0-samples/
+data/cache/
+data/challenge-packs/
+
+# Local config (secrets live here — non-dotted on purpose, see DECISIONS.md)
+config/local.config.json
+
+# Build
+node_modules/
+dist/
+out/
+release/
+*.log
+
+# The packaged app's data root on this machine (cases, raw captures, the index).
+# Real investigation data — same reason cases/ is ignored.
+appdata/
+
+# Icon inspection sheets from `npm run icons:preview`. Regenerated on demand; the
+# committed icons in build/ are the artifacts that matter.
+build/preview/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Derived SQLite index — rebuildable from cases/ via rebuildIndex()
+data/
+!data/.gitkeep
+
+# Test scratch (inside the repo, not the system temp dir)
+.tmp-test/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# geoint spike build artifacts
+spikes/geoint/*.prefix
+spikes/geoint/*.bak
+
+# Upstream source data cached by scripts/build-range-resources.mjs so it re-runs offline.
+# The generated output in resources/geoint/ is committed; this is only the raw input.
+scripts/.cache/
+
+# Design-pass screenshots (regenerated on demand; not source)
+.design-shots/
+
+# ---- Personal / working material: stays on the author's disk, never in the public repo ----
+# Planning and review notes written during development (they describe the author and the
+# real test runs).
+/PRODUCT.md
+/STRATEGY.md
+/PHASE0-REPORT.md
+/PLAN-v0.md
+/REVIEW*.md
+# Real tool output captured while developing the adapters.
+phase0-samples/
+# AI-assistant tooling and per-machine editor/agent settings.
+.claude/
+.grok/
+.impeccable/
+# Stray npm cache created by a mis-set path.
+toolsnpm-cache/
+# Geolocation-range curation scratch (preview paths, shortlists) and spike screenshots.
+spikes/geoint/curation/
+spikes/geoint/SPIKE-REPORT.md
+spikes/geoint/screenshot-*.png
+# Local config, packaged-app data roots and logs.
+appdata/
+cases/
+release/
+out/
+*.bundle
+.tmp-test/

@@ -1,0 +1,22 @@
+{
+ "kind": "t2",
+ "data": {
+  "name": "example_operator",
+  "id": "a1b2c3",
+  "created_utc": 1395049320,
+  "total_karma": 18422,
+  "link_karma": 2104,
+  "comment_karma": 16318,
+  "is_employee": false,
+  "is_mod": true,
+  "is_gold": false,
+  "has_verified_email": true,
+  "icon_img": "https://styles.redditmedia.com/example.png",
+  "subreddit": {
+   "title": "example_operator",
+   "public_description": "Kernel bugs and coffee. Opinions are my own.",
+   "over_18": false,
+   "subscribers": 12
+  }
+ }
+}

@@ -1,0 +1,296 @@
+{
+  "$comment": [
+    "Copy this file to config/local.config.json and edit. local.config.json is gitignored.",
+    "",
+    "This is a JSON file and NOT a dotfile on purpose. See DECISIONS.md: a global permission",
+    "hook freezes background agents for hours on any path matching .env*, so this project has",
+    "no .env of any kind. API keys, when a free-tier source needs one, go under",
+    "adapters.<id>.options.",
+    "",
+    "Relative paths are resolved against the repository root.",
+    "",
+    "toolkitRoot: folder holding the external tools (venv/, bin/, blackbird/, data/). Leave empty to",
+    "auto-detect: OSINT_TOOLKIT_ROOT env var, then ./osint-kit, ./tools/osint-kit, ~/osint-kit.",
+    "opsecKitRoot: optional metadata-scrubber checkout (Scrub view). Empty = OSINT_OPSEC_KIT_ROOT, then ./opsec-kit, ../opsec-kit, ~/opsec-kit."
+  ],
+
+  "casesDir": "cases",
+  "dataDir": "data",
+  "toolkitRoot": "",
+  "opsecKitRoot": "",
+
+  "orchestrator": {
+    "$comment": [
+      "globalConcurrency: total child processes in flight across all adapters.",
+      "defaultConcurrencyPerAdapter: cap for one adapter, so a slow site-sweeper cannot",
+      "  starve everything else.",
+      "defaultTimeoutMs: a tool that has not exited by now is killed (process tree, not just",
+      "  the parent). OSINT CLIs hang on dead endpoints constantly; this is not optional.",
+      "maxOutputBytes: hard cap on captured stdout+stderr per run. Beyond it the capture is",
+      "  truncated and flagged, rather than filling RAM."
+    ],
+    "globalConcurrency": 4,
+    "defaultConcurrencyPerAdapter": 2,
+    "defaultTimeoutMs": 120000,
+    "maxOutputBytes": 8388608
+  },
+
+  "adapters": {
+    "$comment": [
+      "Per-adapter overrides, keyed by adapter id. Every key is optional.",
+      "  enabled       - false hides the adapter from the UI entirely",
+      "  concurrency   - overrides defaultConcurrencyPerAdapter",
+      "  minIntervalMs - minimum gap between two starts of THIS adapter. This is the",
+      "                  politeness knob: it is what stops a username sweep from looking",
+      "                  like an attack to the sites being queried.",
+      "  timeoutMs     - overrides defaultTimeoutMs",
+      "  bin           - absolute path to the binary/script when it is not on PATH",
+      "  options       - free-form knobs the adapter reads, including any API keys"
+    ],
+    "echo": {
+      "enabled": true,
+      "concurrency": 4,
+      "minIntervalMs": 0
+    },
+
+    "maigret": {
+      "$comment": [
+        "The deep username tool. Slow and rate-limit-prone: it reported bot-protection",
+        "errors on a 38-site run. topSites is the knob that matters; allSites is minutes.",
+        "bin defaults to <toolkitRoot>/venv/Scripts/maigret.exe."
+      ],
+      "options": {
+        "topSites": 50,
+        "siteTimeoutSeconds": 10,
+        "connections": 20
+      }
+    },
+
+    "sherlock": {
+      "$comment": [
+        "The fast username tool. Constrain it with `sites` or it probes thousands.",
+        "Note: sherlock's --json flag LOADS a site database; it has no JSON output."
+      ],
+      "options": {
+        "siteTimeoutSeconds": 15
+      }
+    },
+
+    "blackbird": {
+      "$comment": [
+        "Prefers <toolkitRoot>/venv-bb, because its requirements.txt pins exact versions",
+        "and downgrades packages maigret depends on. Create it with:",
+        "  py -3.12 -m venv <toolkitRoot>\\venv-bb",
+        "  <toolkitRoot>\\venv-bb\\Scripts\\pip.exe install -r <toolkitRoot>\\blackbird\\requirements.txt",
+        "`bin` here means the PYTHON INTERPRETER, not blackbird.py.",
+        "updateSites=true re-downloads the site list on every run and makes results",
+        "non-reproducible; it is off by default on purpose."
+      ],
+      "options": {
+        "maxConcurrentRequests": 15,
+        "excludeNsfw": true
+      }
+    },
+
+    "holehe": {
+      "$comment": [
+        "Rate limiting is its normal outcome, not an exception — every module returned a",
+        "rate-limit result during Phase 0 from this IP. A rate-limited site is UNCHECKED,",
+        "never 'no account'. noPasswordRecovery=true avoids sending the subject a reset",
+        "email, at the cost of most of its coverage."
+      ],
+      "minIntervalMs": 30000,
+      "options": {
+        "siteTimeoutSeconds": 10,
+        "noPasswordRecovery": false
+      }
+    },
+
+    "theharvester": {
+      "$comment": [
+        "Runs from <toolkitRoot>/venv-th — it needs Python >= 3.14, the inverse of the",
+        "3.12 the rest of the toolbelt uses. The default source list is the eight that",
+        "need no API key. Its exit code is 0 even when every source fails; read the",
+        "per-source findings instead."
+      ],
+      "options": {
+        "sources": ["duckduckgo", "crtsh", "certspotter", "anubis", "otx", "hackertarget", "rapiddns", "urlscan"],
+        "limit": 200
+      }
+    },
+
+    "subfinder": {
+      "$comment": [
+        "Works with zero API keys. The adapter always passes -config and -pc pointing at",
+        "<toolkitRoot>/config/ so subfinder does not write to AppData.",
+        "Free-tier keys (GitHub is genuinely free) widen coverage; add them to",
+        "<toolkitRoot>/config/subfinder-provider-config.yaml, not here."
+      ],
+      "options": {
+        "maxMinutes": 5,
+        "sourceTimeoutSeconds": 30
+      }
+    },
+
+    "exiftool": {
+      "$comment": [
+        "Offline. The binary must stay beside its exiftool_files\\ directory, and the",
+        "shipped exiftool(-k).exe must be renamed to exiftool.exe — the (-k) suffix makes",
+        "it wait for a keypress, which would hang the spawn forever."
+      ]
+    },
+
+    "gallery-dl": {
+      "$comment": [
+        "Always runs in --simulate mode: it resolves the listing and downloads nothing.",
+        "cookiesFile points at a Netscape-format cookie jar for sites that need a login;",
+        "without one, Instagram and most of X return an authentication error."
+      ],
+      "options": {
+        "range": "1-100"
+      }
+    },
+
+    "wayback": {
+      "$comment": [
+        "Free, keyless, no install. matchType is 'domain' for a domain entity and 'exact'",
+        "for a URL; collapse=digest shows only the captures whose content differs."
+      ],
+      "options": {
+        "limit": 500
+      }
+    },
+
+    "reddit-profile": {
+      "$comment": [
+        "Verified 2026-08-30: Reddit now answers HTTP 403 with a 'blocked by network",
+        "security' page for every keyless .json endpoint from an ordinary connection, and",
+        "a browser User-Agent is refused identically. The adapter reports that as a",
+        "refusal aimed at us and concludes nothing about the account. Keep the honest",
+        "User-Agent; faking a browser does not help and makes the app a worse citizen.",
+        "requestGapMs is the politeness gap between pages."
+      ],
+      "options": {
+        "maxPages": 3,
+        "requestGapMs": 1200
+      }
+    },
+
+    "hibp-passwords": {
+      "$comment": [
+        "Needs a candidate password per run: options.password (hashed locally; only the",
+        "first five hex characters of the SHA-1 are ever sent) or options.sha1.",
+        "Do NOT put a real password in this file — it is gitignored but still plaintext on",
+        "disk, and check() will warn you about it."
+      ]
+    },
+
+    "pattern-timezone": {
+      "$comment": [
+        "No network at all. Re-reads the raw captures already in the case folder, so it",
+        "costs nothing and gets better every time a different adapter runs."
+      ],
+      "options": {
+        "maxCaptures": 200
+      }
+    },
+
+    "websearch": {
+      "$comment": [
+        "The only adapter that can act on a name. It reads the case's own entities.json and",
+        "welds the subject to every other seed — name + town, name + school, name + handle —",
+        "because a bare name is a join key, not a query.",
+        "",
+        "Measured from this machine on 2026-09-03, with the app's honest User-Agent:",
+        "  html.duckduckgo.com/html/   200, ~32 kB, 9-10 parseable results.  WORKS",
+        "  lite.duckduckgo.com/lite/   200, same index, different markup.    WORKS",
+        "  wiby.me/json/               200, real keyless JSON, tiny index.   WORKS",
+        "  public SearXNG instances    2 of 80 answered format=json at all.  MOSTLY DEAD",
+        "  www.mojeek.com/search       200 with a JavaScript captcha page.   DEAD",
+        "  api.qwant.com/v3            403.                                  DEAD",
+        "  search.brave.com            429 on the first request, and its API now needs a",
+        "                              payment card even on the free plan.  OUT OF SCOPE",
+        "  api.marginalia.nu / api2    timeout / 404 on every documented path. DEAD",
+        "",
+        "DuckDuckGo's limiter is bursty rather than a fixed rate: it served a CAPTCHA on the",
+        "third query of a run at 6-second spacing, and served forty in a row on another day.",
+        "That CAPTCHA arrives as HTTP 202, not an error, so it is detected from the body and",
+        "reported as a refusal — never as 'no results'. Once it fires, the whole host is",
+        "struck off for the rest of the run and the chain falls through.",
+        "",
+        "backends: the chain, in order. 'searxng' is deliberately NOT in the default: the one",
+        "  public instance that answered reliably searches only the FIRST WORD of the query",
+        "  and ignores site: entirely, returning a confident page of results for a question",
+        "  nobody asked. Add it only with an instance you trust, ideally your own.",
+        "instances: SearXNG base URLs, tried in order, when 'searxng' is in the chain.",
+        "requestGapMs: politeness gap between requests. Raise it, never lower it.",
+        "maxQueries: how many combinations one run spends. The list is ordered strongest",
+        "  first, so a smaller number simply drops the weakest queries.",
+        "queries: run these literal strings instead of deriving any."
+      ],
+      "options": {
+        "backends": ["ddg-html", "ddg-lite", "wiby"],
+        "instances": ["https://sx.xo.st"],
+        "requestGapMs": 6000,
+        "maxQueries": 6,
+        "maxResultsPerQuery": 10,
+        "maxRetries": 1
+      }
+    },
+
+    "dorks": {
+      "$comment": [
+        "Search operators, prepared and explained. Shares the engine chain with websearch.",
+        "",
+        "mode: 'open' builds the library and makes NO request at all — the right setting for",
+        "  an air-gapped or deliberately quiet session. 'run' executes and parses. 'both'",
+        "  (default) runs the top few and hands over the rest as URLs to open.",
+        "engine: which engine the open-me URLs point at. Google honours filetype:, inurl:",
+        "  and long OR chains best, which is why it is the default for looking rather than",
+        "  parsing. 'duckduckgo', 'bing' and 'google-images' also work.",
+        "dorks: restrict to named template ids (see support/dorks.ts).",
+        "maxRun: how many runnable dorks one run actually executes."
+      ],
+      "options": {
+        "mode": "both",
+        "engine": "google",
+        "maxRun": 4,
+        "requestGapMs": 6000
+      }
+    },
+
+    "archive-today": {
+      "$comment": [
+        "The other archive. Wayback crawls; archive.today saves only what a person clicked",
+        "Save on, rendered in a real browser — so it holds the social media, deleted posts",
+        "and edited profiles Wayback mostly misses.",
+        "",
+        "It has no official API and a reputation for needing a browser. Measured 2026-09-03:",
+        "the Memento TimeMap at https://archive.ph/timemap/<url> answers 200 with",
+        "application/link-format, keyless, with no Cloudflare challenge, and a URL it has",
+        "never seen answers a clean 404. Snapshots themselves also fetch fine. No browser",
+        "automation is needed and none is used.",
+        "",
+        "The surprise: the honest User-Agent works and a Chrome one does not. Every mirror",
+        "answered 200 to 'osint-workbench/0.1 ...' and 429 to a copied Chrome string, seconds",
+        "apart. Do not 'fix' this by faking a browser.",
+        "",
+        "Submitting a NEW capture is the one thing that would need a browser, and is",
+        "deliberately not implemented: reading an archive is observation, adding to it is",
+        "publication.",
+        "",
+        "mirrors: tried in order. All seven are one service behind different domains and",
+        "  returned byte-identical responses; the list exists for the day DNS or a filter",
+        "  takes one of them out."
+      ],
+      "options": {
+        "mirrors": ["archive.ph", "archive.today", "archive.is", "archive.li", "archive.vn", "archive.fo", "archive.md"],
+        "requestGapMs": 2000
+      }
+    }
+  },
+
+  "ui": {
+    "startHiddenInTray": false
+  }
+}

@@ -1,0 +1,396 @@
+/*
+ * The three-zone shell: collapsible left nav, main content, right context panel.
+ *
+ * Panels and rules, not cards. Every region is edge-to-edge and separated by a 1px
+ * hairline; nothing floats on a surface, and nothing nests in a rounded box. The only
+ * rounded things in the app are controls and the one dialog.
+ */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--shell-nav, var(--nav-width)) minmax(0, 1fr) var(
+      --shell-context,
+      var(--context-width)
+    );
+  height: 100%;
+  /* The nav collapse animates its column; the context panel's drag does not, because a
+     transition on a dragged width lags the pointer. */
+  transition: grid-template-columns var(--dur-base) var(--ease);
+}
+
+.shell[data-dragging='true'] {
+  transition: none;
+  /* A drag that leaves the separator must not select the text it passes over. */
+  user-select: none;
+  cursor: col-resize;
+}
+
+/* Closed is a rail, not nothing. A zero-width third column takes the panel's own toggle
+   off screen with it, which leaves no way back — and its 1px border still renders,
+   which is where the stray horizontal pixel at narrow widths came from. */
+.shell[data-context='closed'] {
+  grid-template-columns: var(--shell-nav, var(--nav-width)) minmax(0, 1fr) 30px;
+}
+
+.shell[data-context='closed'] .context__title,
+.shell[data-context='closed'] .context__body,
+.shell[data-context='closed'] .context__grip {
+  display: none;
+}
+
+.shell[data-context='closed'] .context__head {
+  justify-content: center;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------------- nav */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border-right: var(--hairline) solid var(--border);
+}
+
+.nav__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--space-10);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.nav__wordmark {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-ui);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav__items {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+}
+
+.nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  height: var(--row-height);
+  padding: 0 var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.nav__item:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+.nav__item:active {
+  background: var(--control-active);
+}
+
+.nav__item[aria-current='page'] {
+  background: var(--nav-active);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.nav__item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* A count that only appears when there is something to count. */
+.nav__item-count {
+  margin-left: auto;
+  color: var(--ink-muted);
+}
+
+.nav__foot {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Collapsed: icons only. Labels are removed from the layout but kept for screen
+   readers, and every item carries a title so the pointer still gets the name. */
+.nav[data-collapsed='true'] .nav__item {
+  justify-content: center;
+  padding: 0;
+}
+
+.nav[data-collapsed='true'] .nav__head {
+  justify-content: center;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------------ main */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.view__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--space-10);
+  padding: var(--space-2) var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+/* The header is one line. A case name long enough to wrap would push the toolbar and the
+   first rows down the screen every time it was opened, and the full name is one hover
+   away. */
+.view__title {
+  /* Grows into the free space, and when there is none it shrinks alongside the actions
+     rather than before them — a truncated case name is worse than a truncated case id,
+     because the id is copied in full from the button either way. */
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.view__subtitle {
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+}
+
+/* Shrink factor 24, against the title's 1. When the header runs out of room the actions
+   give way first — the case id truncating costs nothing, because the button beside it
+   copies the whole value and its tooltip shows it, while a truncated case name is the one
+   thing on this screen the operator actually reads. */
+.view__actions {
+  display: flex;
+  flex: 0 24 auto;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* ---------------------------------------------------------------- scrolling
+   A view has exactly ONE scrollport, and it is this element.
+
+   It did not use to. `.view__body` was the only thing with `overflow-y: auto`, and every
+   view put its panels — the seed vault, the entity list, the review queue — above it as
+   siblings. Those panels are sized by their content, so they took the height they wanted
+   and `.view__body` was left with whatever remained. On Self-Audit at 1280x800 with the
+   vault open that measured 884px of vault plus 425px of ladder against an 800px window:
+   `.view__body` had a client height of **zero**, sat 594px below the fold, and was still
+   the only element the wheel could move. The whole page was unreachable and the operator's
+   description was exact — "it's only scrolling the bottom part".
+
+   So the scrollport moved out one level. `.view__scroll` wraps everything below the
+   header and scrolls as one page; `.view__body` grows and never scrolls. The header stays
+   outside it, fixed, because a desktop app's title and actions should not scroll away —
+   and keeping it out means a sticky table header inside still sticks to the top of the
+   scrollport, with no magic offset to keep in sync with the header's height.
+
+   A view whose layout is deliberately bounded to the window — the Range drill, which is a
+   photograph beside a map — simply does not use this element. */
+.view__scroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Content inside a view responds to the width the view actually got, which is not the
+     window's: the nav collapses and the context panel drags. */
+  container-type: inline-size;
+}
+
+/* The safety net. A view that forgets the wrapper scrolls as a whole rather than not at
+   all — the failure this replaces was silent and total, so the fallback has to be a
+   working page rather than a lint comment nobody reads. `scripts/design-lint.mjs` fails
+   the build on the omission as well; this is what the operator gets in the meantime. */
+.view:not(:has(> .view__scroll)) {
+  overflow-y: auto;
+}
+
+/* `1 0 auto`, not `1`: it grows into the free space so a short view's empty state still
+   fills the screen, but it must never *shrink* below its content, which is what put the
+   findings table into a zero-height box in the first place. */
+.view__body {
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+.view__body--pad {
+  padding: var(--space-6);
+}
+
+/* A prose column. Doc and explanatory copy cap here; data tables do not. */
+.prose {
+  max-width: var(--measure);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+  color: var(--ink-muted);
+}
+
+.prose > * + * {
+  margin-top: var(--space-3);
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------- panels */
+
+.panel + .panel {
+  border-top: var(--hairline) solid var(--border);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--row-height);
+  padding: 0 var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.panel__head--sticky {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: var(--surface);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.panel__title {
+  font-weight: 500;
+}
+
+.panel__body {
+  padding: var(--space-3) var(--space-4) var(--space-5);
+}
+
+/* --------------------------------------------------------------- context panel
+   DESIGN.md calls this a persistent margin annotation, not a modal — it is where the
+   adapter's mandatory `doc` block lives, and understanding the mechanism is the stated
+   reason the whole product exists. It is therefore always on screen, never summoned.
+
+   320px is the specified width and the default. It is also narrow for six paragraphs of
+   prose, so the separator drags to 560px and remembers nothing, because renderer state
+   does not survive a window close by design. */
+.context {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border-left: var(--hairline) solid var(--border);
+  overflow: hidden;
+}
+
+.context__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--space-10);
+  padding: 0 var(--space-2) 0 var(--space-4);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.context__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-ui);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.context__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* The drag handle. A real separator: focusable, arrow-key resizable, Home to reset. It
+   sits inside the panel's padding so it costs no layout width.
+
+   The hit area is 11px, wider than it looks, because a 1px hairline is not a target. It
+   is still narrower than WCAG 2.2's 24px: a vertical separator cannot be 24px wide
+   without becoming a visible gutter, so the exception this leans on is the keyboard path
+   on the same element — focus it and use the arrow keys, or Home to reset to 320px. */
+.context__grip {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 11px;
+  margin-left: -5px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: var(--z-sticky);
+  transition: background var(--dur-micro) var(--ease);
+}
+
+.context__grip:hover,
+.context__grip:focus-visible {
+  background: var(--border-strong);
+}
+
+.context__grip:focus-visible {
+  outline-offset: 0;
+}
+
+/* --------------------------------------------------------------------- toolbar */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--space-8);
+  padding: var(--space-2) var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.toolbar__spacer {
+  flex: 1;
+}
+
+.toolbar__count {
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+  white-space: nowrap;
+}

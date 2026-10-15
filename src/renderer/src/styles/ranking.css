@@ -1,0 +1,417 @@
+/* =====================================================================
+ * Links, relevance and the subject panel.
+ *
+ * Two things live here and they share a file because they arrived together: the ability
+ * to click a result through to the page it is about, and the ability to see at a glance
+ * whether a result has anything to do with the person being looked for.
+ *
+ * Neither may borrow the confidence ramp's channel. Confidence owns **lightness and
+ * font-weight** on a findings row — that is what makes it survive greyscale and every form
+ * of colour blindness — so relevance is carried by **silhouette plus a word plus a number**
+ * and never by hue or by dimming. The one background this file paints is the row tint for
+ * `contradicted`, and it reuses `--row-refuted`, which is a sinking rather than a colour.
+ * ===================================================================== */
+
+/* ------------------------------------------------------------------ links */
+
+/* A URL is a literal value, so it is mono — that is exactly what the ration is for.
+   `.data` supplies the family; this rule supplies everything else, which is why it does
+   not appear in design-lint's MONO_SELECTORS and does not need to. */
+.link {
+  display: inline;
+  max-width: 100%;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--border-control);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition:
+    color var(--dur-micro) var(--ease),
+    text-decoration-color var(--dur-micro) var(--ease);
+}
+
+.link:hover {
+  color: var(--ink-developed);
+  text-decoration-color: var(--ink-developed);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+.link__text {
+  overflow-wrap: anywhere;
+}
+
+/* The arrow that says "this leaves the app". Sits on the baseline of the text it follows
+   and never wraps away from it. */
+.link__mark {
+  display: inline-block;
+  margin-left: 2px;
+  vertical-align: -1px;
+  opacity: 0.65;
+}
+
+.link:hover .link__mark {
+  opacity: 1;
+}
+
+.link-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Copy the address on its own, with no sentence punctuation attached — the specific
+   failure that made the operator ask for this. */
+.link-copy {
+  flex: none;
+  align-self: center;
+  color: var(--ink-subtle);
+  line-height: 0;
+  transition: color var(--dur-micro) var(--ease);
+}
+
+.link-copy:hover {
+  color: var(--ink);
+}
+
+.link-copy:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.link-copy[data-copied='true'] {
+  color: var(--success);
+}
+
+.link-copy[data-copied='error'] {
+  color: var(--danger);
+}
+
+.link__failure {
+  color: var(--danger);
+  font-size: var(--text-micro);
+}
+
+/* Inside a findings row the whole cell is one line, so a link may not push it taller. */
+.claim-cell .link-pair,
+.claim-cell .link {
+  display: inline;
+}
+
+/* The copy affordance on a table row: present, and out of the way until wanted.
+   `visibility` rather than `opacity`, so a hidden button is not an invisible tab stop —
+   and the selected row always shows its own, which is where keyboard focus already is. */
+.table .claim-cell .link-copy {
+  visibility: hidden;
+}
+
+.table tbody tr:hover .claim-cell .link-copy,
+.table tbody tr:focus-within .claim-cell .link-copy,
+.table tbody tr[aria-selected='true'] .claim-cell .link-copy {
+  visibility: visible;
+}
+
+/* ------------------------------------------------------- the relevance mark */
+
+.rel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink-muted);
+}
+
+.rel__glyph {
+  flex: none;
+}
+
+/* Tabular numerals, so a column of scores lines up and can be compared by eye. */
+.rel__score {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-data);
+}
+
+.rel--off {
+  color: var(--ink-subtle);
+}
+
+/* Four silhouettes, four weights of ink. Deliberately *not* four hues: the ramp owns
+   colour in this row and a second colour signal would fight it. */
+.rel[data-band='anchor'] {
+  color: var(--ink-developed);
+  font-variation-settings: 'wght' 600;
+}
+
+.rel[data-band='supported'] {
+  color: var(--ink-developing);
+  font-variation-settings: 'wght' 500;
+}
+
+.rel[data-band='silent'] {
+  color: var(--ink-subtle);
+}
+
+.rel[data-band='questioned'] {
+  color: var(--ink-muted);
+}
+
+.rel[data-band='contradicted'] {
+  color: var(--ink-muted);
+}
+
+/* The row's own tint. `--row-refuted` sinks a row rather than dimming its text, which is
+   exactly the treatment a contradicted row wants: still fully readable, visibly set down.
+   `:not(.is-probing)` so a live run's safelight still wins on the row being probed. */
+.table tbody tr[data-band='contradicted']:not(.is-probing) {
+  background: var(--row-refuted);
+}
+
+/* The reason a row scored low, inline beside the claim. Rule two of the three that
+   outrank the arithmetic: a score with no reason attached is a verdict.
+
+   It does not shrink. Every tag is two or three words — "different name", "age differs" —
+   and they were written short precisely so they would fit a 30px row whole; letting the
+   cell squeeze one to "age dif…" turns the rule back into a verdict with an ellipsis after
+   it. The claim absorbs the shrinking instead: it is a sentence, it still reads abbreviated,
+   and its full text is on the row's title and in the margin. The cap is a backstop against
+   a tag this file did not write, never the normal case — half the cell comfortably holds
+   the longest one `RELEVANCE_SHORT` defines. */
+.rel-why {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The claim yields width to everything else on the row, down to a floor.
+
+   It is the only item on the row that still reads when it is abbreviated — the reason and
+   the address are both useless in part — so it is the only one that shrinks, and it takes
+   whatever the other two leave. It has no floor on purpose: a floor here would push the
+   cell into overflow, and what overflows out of a table cell is its *last* child, which is
+   the reason a low row scored low. Losing that quietly is the one outcome ranked worse
+   than a short claim. The whole sentence is on the row's title and in the margin. */
+.claim-cell .claim {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The address a claim ends with, pinned so the sentence's ellipsis can never reach it.
+
+   A claim is three to five times wider than the column it gets, so it truncates — and
+   every adapter now puts its URL last, which is exactly what an ellipsis eats. Measured
+   before this rule existed: 1039px of claim into a 294px cell, every profile link off the
+   end of the row, and the operator back to expanding rows to reach a link. The prose reads
+   fine abbreviated and an address does not exist unless it is whole, so this does not
+   shrink at all and the prose absorbs everything. The cap is what keeps that safe: a
+   pinned address may take at most three-fifths of the cell, so it can never be the reason
+   the claim disappears.
+
+   `display: block` rather than a flex box, and that is load-bearing: its children are
+   forced inline in a table row (see `.claim-cell .link-pair`), so an address long enough
+   to reach the cap ends in an ellipsis rather than a hard cut. The whole of it stays on
+   the title and on the clipboard either way, and in the margin's own Page row. */
+.claim-cell .claim-link {
+  display: block;
+  flex: 0 0 auto;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.claim-link__after {
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------- the itemised signals */
+
+.rel-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.rel-list__item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  font-size: var(--text-ui);
+  line-height: 1.45;
+}
+
+/* Signed, so the sum is auditable by eye rather than taken on trust. */
+.rel-list__points {
+  flex: none;
+  width: 3.5ch;
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rel-list__item[data-verdict='conflicts'] .rel-list__points {
+  color: var(--danger);
+}
+
+.rel-list__item[data-verdict='agrees'] .rel-list__points {
+  color: var(--success);
+}
+
+.rel-list__detail {
+  color: var(--ink-muted);
+}
+
+.rel-list__weight {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-1);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------- sortable headers */
+
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: inherit;
+  font: inherit;
+}
+
+.th-sort:hover {
+  color: var(--ink);
+}
+
+.th-sort:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.th-sort__mark {
+  opacity: 0.8;
+}
+
+/* ------------------------------------------- the collapsed contradicted group */
+
+/* A full-width row inside the table body rather than a panel outside it, so the group's
+   header sits with the rows it holds and the table stays one scroll. */
+.band-row td {
+  height: auto;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  white-space: normal;
+  background: var(--bg-sunken);
+}
+
+.band-row__why {
+  display: block;
+  margin-top: var(--space-1);
+  padding-left: var(--space-6);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------- the subject panel */
+
+.subject {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+/* Three fields across at a working width, stacked when the panel is narrow. Grid, because
+   this is two-dimensional; the rest of the app's one-dimensional rows use flex. */
+.subject__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-5);
+}
+
+.subject__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-height: 22px;
+  margin-bottom: var(--space-2);
+  align-items: center;
+}
+
+.subject__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  border: var(--hairline) solid var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-micro);
+}
+
+.subject__chip:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.subject__chip:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.subject__matches {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: var(--space-1);
+}
+
+/* -------------------------------------------------- the common-handle notice */
+
+/* A panel in the flow, not a banner and not a modal. It is telling him something true
+   about the technique, not warning him about a danger, so it gets no colour of its own —
+   DESIGN.md's ban on fear framing applies to chrome as much as to copy. */
+.notice-panel .panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reason-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-4);
+  list-style: disc;
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+  line-height: 1.5;
+}
+
+.prose-block {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-sunken);
+}
+
+.prose-block > .prose + .prose {
+  margin-top: var(--space-3);
+}

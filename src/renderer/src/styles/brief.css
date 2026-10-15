@@ -1,0 +1,345 @@
+/*
+ * The brief.
+ *
+ * Built entirely from the shared vocabulary — panels, hairlines, `--ink-muted` prose, the
+ * `.data` mono ration — and adds only what a running state summary needs that nothing else
+ * in the app does.
+ *
+ * Three rules from DESIGN.md do visible work here:
+ *
+ *   1. **No fear framing, no threat score.** The engine's numbers are budgets and expected
+ *      gains, not severities. The budget rules are neutral ink on a sunken track; the only
+ *      semantic colour on the whole panel is `--warning` on the one condition that actually
+ *      stopped the run, and it arrives with an icon and the words "stopped the run" beside
+ *      it — because that is a fact about the run, never a threat level.
+ *   2. **Panels and rules, not cards.** Every group is separated by a hairline. Nothing
+ *      here is a rounded box floating on a surface.
+ *   3. **Mono is rationed to data.** Routes, node values and the live counters go through
+ *      `<Data>` and `.run__line`, which are the selectors the ration already allows.
+ *      Nothing in this file reaches for `--font-mono`.
+ */
+
+.brief .panel__head {
+  gap: var(--space-3);
+}
+
+/* The brief is prose and structured rows, not a data table, so it takes DESIGN.md's prose
+   discipline rather than the table's. Without a cap the gain, the "1 hop · prior" and the
+   arithmetic toggle end up a thousand pixels apart on a wide window and read as three
+   unrelated columns; the sentences underneath them are already capped at 68ch, so the row
+   above them was the only thing running the full width. */
+.brief .panel__body {
+  max-width: 112ch;
+}
+
+/* The one-line state, in the header, so it is legible with the panel collapsed. A closed
+   panel that says nothing is a closed panel nobody opens. */
+.brief__headline {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-muted);
+  font-size: var(--text-ui);
+}
+
+.brief__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.brief__block + .brief__block {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.brief__h {
+  margin: 0 0 var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-section);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+}
+
+.brief__note {
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+/* A route is a value you read character by character, so it sits in the mono ration via
+   <Data> and is allowed to scroll rather than wrap into an unreadable stack. */
+.brief__route {
+  margin: var(--space-2) 0 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  color: var(--ink-latent);
+  font-size: var(--text-data);
+}
+
+.brief__list {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brief__list > li + li {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+/* ------------------------------------------------------------------ live
+   Amber means live and means nothing else. When no run is in progress this element is not
+   rendered at all, so there is no amber anywhere on the panel. */
+.brief__live {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-sunken);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ questions
+   The reason the panel exists. The target is three decisions per investigation, so this is
+   the only block with primary buttons in it. */
+.brief__questions {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brief-q + .brief-q {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.brief-q__ask {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-developed);
+  font-size: var(--text-body);
+  font-weight: var(--weight-developed);
+  line-height: var(--leading-normal);
+}
+
+.brief-q__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+/* ------------------------------------------------------------------ next actions */
+
+.brief-action__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* The expected gain. Tabular by inheritance from the base rules, and deliberately the same
+   ink as body text: it is an ordering, not a score to be alarmed by. */
+.brief-action__gain {
+  min-width: 2.5ch;
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: var(--weight-developed);
+  font-variant-numeric: tabular-nums;
+}
+
+.brief-action__what {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--text-ui);
+}
+
+.brief-action__meta {
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+}
+
+.brief-action--blocked .brief-action__gain,
+.brief-action--blocked .brief-action__what {
+  color: var(--ink-latent);
+  font-weight: var(--weight-latent);
+}
+
+/* Every term in the sum, so the total is auditable instead of magic. */
+.brief-signals {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  border-left: var(--hairline) solid var(--border);
+}
+
+.brief-signal {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+}
+
+.brief-signal__points {
+  flex: none;
+  min-width: 3.5ch;
+  text-align: right;
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Weight, not hue: a negative term is not a warning, it is a smaller number. */
+.brief-signal__points[data-sign='minus'] {
+  color: var(--ink-subtle);
+}
+
+.brief-signal__detail {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+/* ------------------------------------------------------------------ state groups */
+
+.brief-group + .brief-group {
+  margin-top: var(--space-2);
+}
+
+.brief-group__head {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.brief-group__title {
+  color: var(--ink);
+}
+
+.brief-group__count {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.brief-item__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.brief-item__meta {
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+}
+
+/* ------------------------------------------------------------------ the budget
+   A track and a fill, in neutral ink. Not a meter, not a severity, and never red: this
+   says how much of a budget is spent, which is a fact about the run. */
+.brief-stop__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brief-stop__name {
+  color: var(--ink);
+  font-size: var(--text-ui);
+}
+
+.brief-stop__icon {
+  flex: none;
+  color: var(--warning);
+}
+
+.brief-stop__flag {
+  color: var(--warning);
+  font-size: var(--text-data);
+}
+
+/* Short on purpose. A budget is a small fact and a rule the width of the window reads as a
+   gauge; this is a mark you glance at, not an instrument panel. */
+.brief-stop__rule {
+  max-width: 280px;
+  height: 3px;
+  margin: var(--space-2) 0;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+/* Scaled rather than widened: a transform does not touch layout, and the fill moves on
+   every settled run. `transform-origin` is what makes it grow from the left instead of
+   from the middle. */
+.brief-stop__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: var(--border-strong);
+  transition: transform var(--dur-base) var(--ease);
+}
+
+.brief-stop[data-fired='true'] .brief-stop__fill {
+  background: var(--warning);
+}
+
+/* ------------------------------------------------------------------ routes */
+
+.brief-route__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+}
+
+/* A cut node reads as fixed and discarded — the same treatment `refuted` gets, because it
+   is the same statement: this is off the board, and it is still here. */
+.brief-route[data-pruned='true'] .brief__route {
+  color: var(--ink-fixed);
+  text-decoration: line-through;
+}
+
+/* ------------------------------------------------------------------ the log */
+
+.brief-decision {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.brief-decision__kind {
+  flex: none;
+  min-width: 9ch;
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+.brief-decision__reason {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+/* At a narrow window the header's one-line summary is the first thing to go: the button
+   has to stay reachable, and a headline that wraps to three lines pushes it off screen. */
+@media (max-width: 900px) {
+  .brief__headline {
+    display: none;
+  }
+}

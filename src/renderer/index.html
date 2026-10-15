@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      The renderer loads no remote anything. This CSP is what makes that a guarantee
+      rather than an intention: a case view eventually renders text from hostile sources,
+      and a stray <img src="http://…"> would leak the fact that you are looking.
+
+      `pano:` is the one addition, and it is not an exception to that rule. It is served
+      by the main process (src/main/range.ts), which fetches the Range's street-level
+      imagery itself against a fixed allowlist of Panoramax hosts. The page still cannot
+      name a remote host — it can only ask for a `pano:` URL and be told no. Doing it
+      this way also removes the spike's worst imagery bug outright: a Panoramax instance
+      that sends no CORS headers is not the page's problem when the page never makes the
+      request.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: pano:; connect-src 'self' pano: ws://localhost:* http://localhost:*"
+    />
+    <title>OSINT Workbench</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

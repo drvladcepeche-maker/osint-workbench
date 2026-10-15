@@ -1,0 +1,613 @@
+/*
+ * Self-Audit.
+ *
+ * Everything here is built from the shared vocabulary — panels, hairlines, the confidence
+ * ramp, the `.data` mono ration — and adds only what the five-level ladder needs that
+ * nothing else in the app does.
+ *
+ * Two rules from DESIGN.md do visible work on this screen:
+ *
+ *   1. **No fear framing.** There is no severity colour, no red total, no meter. The one
+ *      place a semantic colour appears is on a check that could not answer, and it appears
+ *      as `--warning` with an icon and the word "could not check" beside it — because that
+ *      is a fact about the run, not a threat level.
+ *   2. **Amber means live.** The run bar is the only amber on this screen and only while a
+ *      sweep is actually in progress.
+ */
+
+/* ------------------------------------------------------------------ the rail
+   Five rungs across the top, outside the scrollport, permanently on screen.
+
+   It replaces five full-width rows that lived halfway down a scrolling page. That layout
+   made "where am I" a question you had to scroll backwards past your own seed form to
+   answer, which is precisely what the operator complained about. A rail costs the detail
+   each row used to carry; that detail moved into the panel for the rung the rail has
+   selected, which is the only rung it was ever about.
+
+   `data-status` carries the state and the type marks it as well: `next` gets weight, `ran`
+   gets a check glyph, `blocked` says what it is waiting for. Hue is never the sole
+   carrier, exactly as it is not in the confidence ramp. */
+
+.sa-spine {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: var(--hairline) solid var(--border);
+  background: var(--bg-sunken);
+  flex: none;
+}
+
+.sa-rung {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-left: var(--hairline) solid var(--border);
+  background: transparent;
+  color: var(--ink-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.sa-rung:first-child {
+  border-left: none;
+}
+
+.sa-rung:hover {
+  background: var(--row-hover);
+  color: var(--ink);
+}
+
+.sa-rung[aria-selected='true'] {
+  background: var(--row-selected);
+  color: var(--ink);
+}
+
+.sa-rung:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+
+.sa-rung__top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.sa-rung__code {
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-rung__adds {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-data);
+}
+
+.sa-rung__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The rung the step card is offering. One at a time, and it is the same level the card
+   names — two places pointing at different next actions is how the old layout got
+   confusing in the first place. */
+.sa-rung[data-status='next'] .sa-rung__status {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.sa-rung[data-status='ran'] .sa-rung__status {
+  color: var(--ink-muted);
+}
+
+/* Amber is live and nothing else, so it appears here only while a sweep is running. */
+.sa-rung[data-status='running'] .sa-rung__status {
+  color: var(--accent);
+}
+
+.sa-rung__live {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: sa-rung-pulse 1.6s var(--ease) infinite;
+}
+
+@keyframes sa-rung-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sa-rung__live {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------- the next step
+   One card, one primary button, directly under the rail. The procedure used to live in
+   the operator's head; this is it on the screen. */
+
+.sa-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+  flex: none;
+}
+
+.sa-step__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--measure);
+}
+
+.sa-step__title {
+  color: var(--ink);
+  font-size: var(--text-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sa-step__body {
+  margin-top: var(--space-2);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.sa-step__action {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.sa-step__last {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+/* Below the width where the sentence and the button can sit side by side, the button goes
+   under the text rather than squeezing the sentence into a column two words wide. */
+@container (max-width: 720px) {
+  .sa-step {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .sa-step__action {
+    align-items: flex-start;
+  }
+}
+
+/* ---------------------------------------------------------------- seed form */
+
+.sa-seeds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-5) var(--space-6);
+}
+
+.sa-seed__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* "one per line" beside the label, because the paragraph above eight fields was read once
+   and then never again. Not an uppercase eyebrow — DESIGN.md bans those — just the rule in
+   the same voice as everything else. */
+.sa-seed__rule {
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+}
+
+.sa-seed__level {
+  margin-left: auto;
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-seed textarea.textarea {
+  min-height: 58px;
+}
+
+/* The live count. It moves while he types, which is the only one of the three "this is a
+   list" signals that responds to what he actually did. */
+.sa-seed__count {
+  margin-top: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-seed__count[data-empty='true'] {
+  color: var(--ink-subtle);
+}
+
+.sa-seeds__foot {
+  margin-top: var(--space-5);
+}
+
+.sa-seed__buys {
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* ---------------------------------------------------------------- the delta */
+
+/* The one sentence the whole feature exists to produce. Body-prose size rather than a
+   headline size: it is a paragraph that happens to matter, not a banner. */
+.sa-headline {
+  max-width: var(--measure);
+  color: var(--ink);
+  font-size: var(--text-section);
+  font-weight: 450;
+  line-height: var(--leading-normal);
+  letter-spacing: -0.01em;
+}
+
+.sa-basis {
+  margin-top: var(--space-4);
+  padding-left: var(--space-4);
+  border-left: var(--hairline) solid var(--border);
+  max-width: var(--measure);
+}
+
+.sa-basis li {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+  list-style: none;
+}
+
+.sa-basis li + li {
+  margin-top: var(--space-2);
+}
+
+.sa-caveats li {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+  list-style: none;
+}
+
+.sa-caveats li + li {
+  margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------- rows */
+
+.sa-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+  font-size: var(--text-data);
+  color: var(--ink-muted);
+}
+
+.sa-row:first-child {
+  border-top: none;
+}
+
+.sa-row__lead {
+  flex: none;
+  min-width: 128px;
+  color: var(--ink);
+}
+
+.sa-row__body {
+  flex: 1;
+  min-width: 0;
+  line-height: var(--leading-normal);
+}
+
+.sa-row__aside {
+  flex: none;
+  margin-left: auto;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A check that produced no answer. Warning ink plus the icon plus the words — hue is
+   never the sole carrier, and this is the one state on the page that must not be missed. */
+.sa-row--silent .sa-row__lead {
+  color: var(--warning);
+}
+
+.sa-silent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--warning);
+}
+
+/* ---------------------------------------------------------------- remediation */
+
+.sa-fix {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.sa-fix:first-child {
+  border-top: none;
+}
+
+.sa-fix__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.sa-fix__n {
+  flex: none;
+  width: 20px;
+  color: var(--ink-subtle);
+  font-size: var(--text-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.sa-fix__action {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: 500;
+  line-height: var(--leading-normal);
+}
+
+.sa-fix__body {
+  margin: var(--space-1) 0 0 calc(20px + var(--space-3));
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.sa-fix__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0 calc(20px + var(--space-3));
+}
+
+/* ---------------------------------------------------------------- reset paths */
+
+.sa-hub {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.sa-hub:first-child {
+  border-top: none;
+}
+
+.sa-hub__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sa-hub__reach {
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+.sa-edges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.sa-chain {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.sa-chain ol {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+}
+
+.sa-chain li + li {
+  margin-top: var(--space-1);
+}
+
+.sa-chain__note {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+  color: var(--ink-subtle);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* ---------------------------------------------------------------- letters */
+
+.sa-letter {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .sa-letter {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sa-letter__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sa-letter__body {
+  min-width: 0;
+}
+
+.sa-letter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+/* The letter itself. `.raw` already carries the mono ration and the sunken well; this
+   only lifts the height cap, because a legal request the operator is about to send has to
+   be readable in one piece rather than through a 320px window. */
+.sa-letter__text.raw {
+  max-height: none;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- misc */
+
+.sa-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.sa-section {
+  padding: var(--space-6) var(--space-6) 0;
+}
+
+.sa-section + .sa-section {
+  padding-top: var(--space-8);
+}
+
+.sa-section__title {
+  color: var(--ink);
+  font-size: var(--text-section);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sa-section__lede {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-body);
+  line-height: var(--leading-prose);
+}
+
+.sa-section__panel {
+  margin-top: var(--space-3);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.sa-foot {
+  padding: var(--space-8) var(--space-6) var(--space-10);
+}
+
+/* ------------------------------------------------------- saved seed values
+   The values already in the vault, each removable on its own.
+
+   The textarea above is the editor for entering several at once; this is the answer to
+   "can I take one back out". Removing a line from a block of text is not an affordance —
+   it is something you have to already know is possible — and the operator asked the
+   question, which is the evidence that it was not. */
+
+.sa-saved {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sa-saved__row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 22px;
+  padding: 0 0 0 var(--space-2);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+/* The confirmation takes the whole row: three choices with a count in front of them do
+   not fit in a chip, and squeezing them in is how a destructive choice gets misread. */
+.sa-saved__row--asking {
+  display: flex;
+  flex-wrap: wrap;
+  height: auto;
+  padding: var(--space-2);
+  gap: var(--space-2);
+  border-color: var(--border-control);
+  background: var(--bg-sunken);
+}
+
+.sa-saved__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24px pointer target, per WCAG 2.2 SC 2.5.8. The chip is 22px tall, so the button
+     overhangs it by a pixel top and bottom rather than shrinking the target. */
+  width: 24px;
+  height: 24px;
+  margin: -1px -1px -1px 0;
+  color: var(--ink-muted);
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease);
+}
+
+.sa-saved__remove:hover {
+  background: var(--control-hover);
+  color: var(--ink);
+}

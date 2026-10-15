@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GEOINT Range</title>
+
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css"
+      integrity="sha384-Nq6PQ+9vJPvw7U/VfDELyrWoGQMsy0gi6QShhaSrGzkpF5KkM40csg2leky+YMTd" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"
+      integrity="sha384-02yn80EH0cF+s23taAmuhEZ04p3CTbQvV0QZMr2reUxajpfvcLNKlzsPkZwx14mf" crossorigin="anonymous">
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"
+        integrity="sha384-GfxBM9x46BaAFxtCq39Fxir8fNZ4VDnwgfi6Kzi5/F1tAFsm0amuuV8kd+Pxzuf/" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
+        integrity="sha384-S5+w/JlcNAOymqXGNrvzn2F++XsaHTJdex6KE5VbKryfFgqJiRUJOgOkUqaiOZTf" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+<!-- Clue atlas content (optional; the app degrades gracefully without it) -->
+<script src="atlas-data.js" onerror="window.__noAtlas=1"></script>
+<!-- Hand-picked L1 rounds, each with a written lesson. Optional: without it L1
+     falls back to signal-ranked sampling from the index. -->
+<script src="curated-data.js" onerror="window.__noCurated=1"></script>
+
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --acc:#2f81f7; --good:#3fb950; --warn:#d29922; --bad:#f85149; --gold:#e3b341;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+  button{font:inherit;border:none;cursor:pointer;transition:filter .12s,opacity .12s,background .12s}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button:not(:disabled):hover{filter:brightness(1.18)}
+
+  #app{display:grid;grid-template-columns:1fr 470px;height:100vh}
+  @media(max-width:1000px){#app{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}
+
+  /* ---------- imagery ---------- */
+  #stage{position:relative;background:#000;overflow:hidden}
+  #pano{position:absolute;inset:0;display:none}
+  #flatWrap{position:absolute;inset:0;display:none;cursor:grab;overflow:hidden}
+  #flatWrap.drag{cursor:grabbing}
+  #flatImg{position:absolute;transform-origin:0 0;user-select:none;-webkit-user-drag:none}
+  #stageMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:10px;color:var(--dim);text-align:center;padding:24px}
+  .spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--acc);
+    border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #badges{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:5;max-width:70%}
+  .badge{background:rgba(13,17,23,.85);border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px;font-size:11px;font-family:var(--mono);color:var(--dim);backdrop-filter:blur(6px)}
+  .badge b{color:var(--ink);font-weight:600}
+  .badge.sig{border-color:rgba(63,185,80,.5);color:#7ee08a}
+  #attrib{position:absolute;bottom:8px;left:12px;font-size:10px;color:#6e7681;
+    background:rgba(13,17,23,.8);padding:3px 8px;border-radius:4px;z-index:5}
+  #attrib a{color:#8b949e}
+
+  /* ---------- side ---------- */
+  #side{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  header{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  header h1{font-size:14px;font-weight:650;letter-spacing:.02em}
+  #atlasBtn{margin-left:auto;background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+    border-radius:7px;padding:6px 11px;font-size:12px;font-weight:600}
+
+  #levels{display:flex;gap:4px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .lv{flex:1;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:7px;
+    padding:7px 4px;font-size:11px;font-weight:600;text-align:center;line-height:1.25}
+  .lv b{display:block;font-size:12px;color:var(--ink)}
+  .lv.on{background:var(--acc);border-color:var(--acc);color:#cfe4ff}
+  .lv.on b{color:#fff}
+
+  #guessArea{flex:1;min-height:0;display:flex;flex-direction:column}
+  #map{flex:1;min-height:180px;display:none}
+  #countryPick{flex:1;min-height:0;overflow-y:auto;padding:12px 14px;display:none}
+  #countryPick h3{font-size:12px;color:var(--dim);font-weight:600;margin-bottom:8px}
+  .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .cbtn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;
+    padding:9px 10px;font-size:12.5px;text-align:left}
+  .cbtn.sel{background:var(--acc);border-color:var(--acc);color:#fff}
+  .cbtn.truth{background:rgba(63,185,80,.22);border-color:var(--good);color:#8ce69a}
+  .cbtn.wrong{background:rgba(248,81,73,.2);border-color:var(--bad);color:#ff9a92}
+
+  #ctl{padding:12px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:baseline;justify-content:space-between;font-size:12px;color:var(--dim);gap:8px}
+  .row b{color:var(--ink);font-family:var(--mono);font-size:13px}
+  input[type=range]{width:100%;accent-color:var(--acc)}
+  #radiusBox{display:none;flex-direction:column;gap:8px}
+  #submit{background:var(--acc);color:#fff;width:100%;border-radius:8px;padding:10px;font-weight:650}
+  #next{background:var(--good);color:#04260f;width:100%;border-radius:8px;padding:10px;font-weight:650;display:none}
+
+  /* hints */
+  #hints{display:flex;gap:5px}
+  .hbtn{flex:1;background:var(--panel2);color:var(--gold);border:1px solid rgba(227,179,65,.4);
+    border-radius:7px;padding:7px 5px;font-size:11px;font-weight:600}
+  .hbtn.used{opacity:.45;cursor:default}
+  /* capped: atlas hint text can run long, and without this it squeezes the map away */
+  #hintOut{display:none;background:rgba(227,179,65,.09);border:1px solid rgba(227,179,65,.3);
+    border-radius:7px;padding:9px 11px;font-size:12px;color:#e8cf8f;line-height:1.5;
+    max-height:180px;overflow-y:auto}
+  #hintOut p{margin-bottom:6px}#hintOut p:last-child{margin:0}
+  #hintOut a{color:var(--gold);cursor:pointer;text-decoration:underline}
+
+  #result{display:none;border-top:1px solid var(--line);padding:13px 14px;max-height:48vh;
+    overflow-y:auto;font-size:12px}
+  .big{font-size:29px;font-weight:700;font-family:var(--mono);letter-spacing:-.02em}
+  .brk{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:9px;
+    font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .brk span:nth-child(even){color:var(--ink);text-align:right}
+  .verdict{margin-top:9px;padding:8px 10px;border-radius:6px;font-size:11.5px;line-height:1.45}
+  .v-good{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.35);color:#7ee08a}
+  .v-warn{background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.35);color:#e3b341}
+  .v-bad{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35);color:#ff8a80}
+  .lesson{margin-top:10px;padding:9px 11px;border-radius:6px;background:var(--panel2);
+    border:1px solid var(--line);font-size:12px;line-height:1.55}
+  .lesson h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:5px}
+  /* Written lesson (curated rounds). The step labels carry the method — look here
+     first, this is what it rules out, this is what confirms it — so they are the
+     one thing in the panel that must stay readable at a glance. */
+  .step{margin-top:8px}
+  .step:first-of-type{margin-top:2px}
+  .step .lbl{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--acc);margin-bottom:2px}
+  .step .where{color:var(--dim)}
+  .lesson .atlaslinks{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);
+    font-size:11px;color:var(--dim)}
+  .lesson .atlaslinks a{color:var(--acc);cursor:pointer;margin-right:4px}
+  .lesson .atlaslinks a:hover{text-decoration:underline}
+  .aids{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7}
+  .aids b{color:var(--ink)} .aids a{color:var(--acc)}
+  #runStats{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);
+    font-size:11px;font-family:var(--mono);color:var(--dim)}
+
+  /* ---------- atlas ---------- */
+  #atlas{position:fixed;inset:0;background:rgba(4,7,12,.93);backdrop-filter:blur(5px);
+    z-index:50;display:none;padding:26px}
+  #atlasIn{max-width:1080px;height:100%;margin:0 auto;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;display:grid;grid-template-columns:250px 1fr;overflow:hidden}
+  #atlasNav{border-right:1px solid var(--line);overflow-y:auto;padding:12px;background:var(--bg)}
+  #atlasNav h2{font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  #atlasClose{margin-left:auto;background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+    border-radius:6px;padding:3px 9px;font-size:12px}
+  #atlasSearch{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:7px;padding:7px 9px;font-size:12px;margin-bottom:9px}
+  .anav{display:block;width:100%;text-align:left;background:none;border:none;color:var(--dim);
+    padding:6px 8px;border-radius:6px;font-size:12.5px}
+  .anav:hover{background:var(--panel2);color:var(--ink)}
+  .anav.on{background:var(--acc);color:#fff}
+  .anavh{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#6e7681;margin:12px 0 5px 8px}
+  #atlasBody{overflow-y:auto;padding:22px 26px}
+  #atlasBody h3{font-size:19px;margin-bottom:4px}
+  #atlasBody .why{color:var(--dim);font-size:13px;margin-bottom:14px;line-height:1.6}
+  #atlasBody .how{background:var(--panel2);border:1px solid var(--line);padding:11px 14px;
+    border-radius:8px;font-size:13px;margin-bottom:16px;line-height:1.6}
+  #atlasBody .how b{color:var(--acc)}
+  .clue{border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-bottom:8px;background:var(--bg)}
+  .clue .v{font-weight:650;font-size:13.5px;margin-bottom:3px}
+  .clue .m{font-size:12.5px;color:var(--ink);opacity:.85;line-height:1.5}
+  .clue .w{font-size:11.5px;color:var(--dim);margin-top:6px;font-family:var(--mono)}
+  .clue .unv{display:inline-block;background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.4);
+    color:var(--gold);font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;font-family:var(--mono)}
+  .ctells li{margin:5px 0 5px 18px;font-size:13px;line-height:1.55}
+  .cfacts{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:12.5px;margin-top:12px}
+  .cfacts span:nth-child(odd){color:var(--dim);font-family:var(--mono);font-size:11.5px}
+  .empty{color:var(--dim);text-align:center;padding:60px 20px;line-height:1.7}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="stage">
+    <div id="badges"></div>
+    <div id="pano"></div>
+    <div id="flatWrap"><img id="flatImg" alt="street-level image"
+      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></div>
+    <div id="stageMsg"><div class="spin"></div><div>Loading…</div></div>
+    <div id="attrib">© <a href="https://panoramax.xyz" target="_blank" rel="noopener">Panoramax</a> contributors, CC-BY-SA 4.0 ·
+      signal data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  </div>
+
+  <div id="side">
+    <header>
+      <h1>GEOINT Range</h1>
+      <button id="atlasBtn">📖 Clue atlas</button>
+    </header>
+
+    <div id="levels"></div>
+
+    <div id="guessArea">
+      <div id="map"></div>
+      <div id="countryPick"><h3>Which country is this?</h3><div class="cgrid" id="cgrid"></div></div>
+    </div>
+
+    <div id="ctl">
+      <div id="hints">
+        <button class="hbtn" data-h="1">Hint 1 · what to look at</button>
+        <button class="hbtn" data-h="2">Hint 2 · what it means</button>
+        <button class="hbtn" data-h="3">Hint 3 · atlas</button>
+      </div>
+      <div id="hintOut"></div>
+      <div id="radiusBox">
+        <div class="row"><span id="rLabel">Confidence radius</span></div>
+        <div class="row"><span id="rHint">click the map to place your guess</span><b id="rVal">25 km</b></div>
+        <!-- default ≈400 km: the pin tiers are continental in scope, and a tight
+             default radius guarantees a brutal first round before anything is learned -->
+        <input type="range" id="radius" min="0" max="1000" value="748">
+      </div>
+      <button id="submit" disabled>Submit guess</button>
+      <button id="next">Next round →</button>
+    </div>
+
+    <div id="result"></div>
+  </div>
+</div>
+
+<!-- ---------------------------------------------------------------- atlas -->
+<div id="atlas">
+  <div id="atlasIn">
+    <div id="atlasNav">
+      <h2>📖 Clue atlas <button id="atlasClose">esc</button></h2>
+      <input id="atlasSearch" placeholder="search clues…">
+      <div id="atlasNavList"></div>
+    </div>
+    <div id="atlasBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   GEOINT Range — geolocation training, built around teaching METHOD.
+
+   Design note (this is the whole point of the rewrite):
+   Serving a uniformly random street-level frame produces a featureless house or
+   an empty rural road most of the time. That is not training, it is noise, and
+   it is unusable for a beginner who has not yet built a mental reference library.
+   So this app does three things instead:
+     1. it only serves frames with measurable OSM signal nearby (build-index.mjs),
+     2. it starts at "which country?" and only later becomes a pin drop,
+     3. it ships a clue atlas and progressive hints, so a dead end becomes a lesson.
+
+   Imagery : Panoramax — open, keyless, CC-BY-SA 4.0
+   Basemap : OpenFreeMap + MapLibre GL JS — free, keyless
+   ==========================================================================*/
+
+const API = "https://api.panoramax.xyz/api";
+
+/* ------------------------------------------------------------------ levels */
+/* Scoring geography for pin mode. D = distance decay, Rref = calibration reference,
+   both sized to the tier's actual geographic scope. L3 is deliberately Bulgaria-only:
+   home ground is where recognition is learned fastest, and it is also the only scale
+   at which a 20 km radius is a meaningful statement. */
+const SCALES = {
+  bulgaria: { D:250,  Rref:300,  center:[25.5,42.7], zoom:6.2, radiusDefault:560 }, // ~90 km
+  global:   { D:1200, Rref:2000, center:[11,45],     zoom:2.6, radiusDefault:748 }, // ~400 km
+};
+
+const LEVELS = {
+  1: { key:1, name:"Curated",  sub:"country · free hints",
+       source:"curated", index:"countries", mode:"country", hintCost:[0,0,0], curated:true },
+  2: { key:2, name:"Filtered", sub:"country · hints cost",
+       source:"index", index:"countries", mode:"country", hintCost:[150,300,200] },
+  3: { key:3, name:"Home pin", sub:"Bulgaria · radius",
+       source:"index", index:"bulgaria",  mode:"pin", scale:"bulgaria", hintCost:[300,600,400] },
+  4: { key:4, name:"Wild",     sub:"worldwide · expert",
+       source:"live",  index:null,        mode:"pin", scale:"global",   hintCost:[0,0,0], noHints:true },
+};
+let LV = LEVELS[1];
+const scale = () => SCALES[LV.scale || "global"];
+const WILD_BBOX = [-180,-60,180,78];
+
+const DIST_MAX = 5000;
+const CALIB_K  = 3000;
+const ALPHA    = 0.50;
+const PEN      = 2 / ALPHA;                       // 4
+const CONF_PCT = Math.round((1 - ALPHA/2) * 100); // 75
+const COUNTRY_POINTS = 1000;
+
+/* ---------------------------------------------------------------- scoring */
+/*
+   PIN MODE
+     TOTAL = DIST_MAX*exp(-d/D)  +  CALIB_K*(1 - W/Rref),  W = r + PEN*max(0, d-r)
+
+   W is the Winkler interval score. E[W] is minimised at r* = the (1-ALPHA/2)
+   percentile of the player's own belief about d, so — since the distance term
+   contains no r — stating your genuine uncertainty is the optimal play. Verified
+   by Monte-Carlo over five belief distributions (see SPIKE-REPORT.md).
+
+   The calibration term is deliberately UNBOUNDED below. Clamping it caps the
+   overconfidence penalty and so rewards understating the radius: with a clamp,
+   the optimal r collapsed to 191 km for a player whose honest percentile was
+   360 km. Big negative rounds are the teaching signal, not a bug.
+*/
+function scorePin(d, r) {
+  const S = scale();
+  const distance = DIST_MAX * Math.exp(-d / S.D);
+  const W = r + PEN * Math.max(0, d - r);
+  const calibration = CALIB_K * (1 - W / S.Rref);
+  return { distance, calibration, W, total: distance + calibration, hit: d <= r };
+}
+
+/* ---------------------------------------------------------------- geometry */
+const R_EARTH = 6371.0088;
+const rad = d => d*Math.PI/180, deg = r => r*180/Math.PI;
+function haversine(a, b) {
+  const dLat = rad(b[1]-a[1]), dLon = rad(b[0]-a[0]);
+  const s = Math.sin(dLat/2)**2 + Math.cos(rad(a[1]))*Math.cos(rad(b[1]))*Math.sin(dLon/2)**2;
+  return 2*R_EARTH*Math.asin(Math.min(1, Math.sqrt(s)));
+}
+function circlePolygon(center, km, steps=128) {
+  const [lon,lat]=center, d=km/R_EARTH, la1=rad(lat), lo1=rad(lon), ring=[];
+  for (let i=0;i<=steps;i++){
+    const b=rad(i*360/steps);
+    const la2=Math.asin(Math.sin(la1)*Math.cos(d)+Math.cos(la1)*Math.sin(d)*Math.cos(b));
+    const lo2=lo1+Math.atan2(Math.sin(b)*Math.sin(d)*Math.cos(la1), Math.cos(d)-Math.sin(la1)*Math.sin(la2));
+    ring.push([deg(lo2),deg(la2)]);
+  }
+  return { type:"Feature", geometry:{ type:"Polygon", coordinates:[ring] } };
+}
+const sliderToKm = v => Math.round(Math.exp((v/1000)*Math.log(3000))*10)/10;
+const fmtKm = k => k>=100 ? Math.round(k)+" km" : k.toFixed(1).replace(/\.0$/,"")+" km";
+
+/* ------------------------------------------------------------------ state */
+const $ = s => document.querySelector(s);
+let indexes = {};          // cached candidates.<region>.json
+let liveCollections = [];  // for level 4
+let current = null;        // { c:[lon,lat], url, pano, country, area, kinds, signal, t }
+let guess = null, guessCountry = null, revealed = false;
+let hintsUsed = [];
+let seen = new Set();
+let run = { total:0, rounds:0, hits:0, correct:0 };
+
+const stageMsg = $("#stageMsg");
+function msg(html, spin=false){ stageMsg.style.display="flex";
+  stageMsg.innerHTML=(spin?'<div class="spin"></div>':"")+"<div>"+html+"</div>"; }
+const hideMsg = () => stageMsg.style.display="none";
+
+/* --------------------------------------------------------- signal wording */
+/* Each hint is derived from the OSM features that caused the frame to be picked,
+   so hint 1 is always TRUE for this specific image — never a generic platitude. */
+const KIND_HINT = {
+  shop_named:   ["a named shop within 60 m", "Find the shopfront and read the sign — the script and the words are your strongest clue."],
+  amenity_named:["a named business or public building within 60 m", "Look for a facade sign, a pharmacy cross, a bank logo or a school name board."],
+  bus_stop:     ["a bus stop within 60 m", "Bus stop flags carry route numbers, operator names and often the settlement name."],
+  place:        ["a settlement centre within 60 m", "Look for a place-name sign, a war memorial, or a municipal building."],
+  route_ref:    ["a numbered road within 60 m", "Road number signs give you the country immediately — shape, colour and prefix letter all encode it."],
+  tourism_info: ["a tourist information board within 60 m", "Information boards are dense with place names and often a map."],
+  traffic_sign: ["a mapped traffic sign within 60 m", "Sign shape, colour and typeface are country-specific even when there is no text."],
+  border:       ["a border crossing within 60 m", "You are within sight of a national border — expect two sets of conventions."],
+};
+
+/* --------------------------------------------------------------------- map */
+let map = null, mapReady = false;
+function initMap() {
+  map = new maplibregl.Map({
+    container:"map", style:"https://tiles.openfreemap.org/styles/liberty",
+    center:SCALES.global.center, zoom:SCALES.global.zoom, attributionControl:{ compact:true },
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass:false }), "top-right");
+  map.on("load", () => {
+    const empty={type:"FeatureCollection",features:[]};
+    map.addSource("circle",{type:"geojson",data:empty});
+    map.addLayer({id:"circle-fill",type:"fill",source:"circle",paint:{"fill-color":"#2f81f7","fill-opacity":.12}});
+    map.addLayer({id:"circle-line",type:"line",source:"circle",paint:{"line-color":"#2f81f7","line-width":1.5,"line-dasharray":[2,2]}});
+    map.addSource("link",{type:"geojson",data:empty});
+    map.addLayer({id:"link-line",type:"line",source:"link",paint:{"line-color":"#f85149","line-width":2,"line-dasharray":[1.5,1.5]}});
+    map.addSource("pts",{type:"geojson",data:empty});
+    map.addLayer({id:"pts-halo",type:"circle",source:"pts",paint:{"circle-radius":10,"circle-color":["get","color"],"circle-opacity":.25}});
+    map.addLayer({id:"pts-dot",type:"circle",source:"pts",paint:{"circle-radius":6,"circle-color":["get","color"],
+      "circle-stroke-width":2,"circle-stroke-color":"#0d1117"}});
+    mapReady = true;
+  });
+  map.on("click", e => {
+    if (revealed || LV.mode !== "pin") return;
+    guess=[e.lngLat.lng,e.lngLat.lat]; $("#submit").disabled=false;
+    $("#rHint").textContent="guess placed — set your honest radius"; drawGuess();
+  });
+}
+const setSrc = (id,d) => { if(mapReady){const s=map.getSource(id); if(s)s.setData(d);} };
+function drawGuess(){
+  if(!guess) return;
+  setSrc("circle", circlePolygon(guess, sliderToKm(+$("#radius").value)));
+  setSrc("pts",{type:"FeatureCollection",features:[
+    {type:"Feature",properties:{color:"#2f81f7"},geometry:{type:"Point",coordinates:guess}}]});
+}
+$("#radius").addEventListener("input", () => {
+  $("#rVal").textContent = fmtKm(sliderToKm(+$("#radius").value));
+  if (!revealed) drawGuess();
+});
+
+/* -------------------------------------------------------------- imagery IO */
+async function jget(u){ const r=await fetch(u); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+
+async function loadIndex(name){
+  if (indexes[name]) return indexes[name];
+  const j = await jget(`candidates.${name}.json`);
+  indexes[name] = j;
+  return j;
+}
+
+/* Level 4 only: unfiltered live sampling, the expert tier. */
+async function loadLiveCollections(){
+  if (liveCollections.length) return liveCollections;
+  const j = await jget(`${API}/collections?bbox=${WILD_BBOX.join(",")}&limit=1000`);
+  liveCollections = (j.collections||[]).filter(c=>{
+    const b=c.extent?.spatial?.bbox?.[0]; if(!b) return false;
+    return (b[2]-b[0])<=0.6 && (b[3]-b[1])<=0.6 && (c["stats:items"]?.count||0)>0;
+  });
+  return liveCollections;
+}
+async function pickLive(tries=12){
+  const cols = await loadLiveCollections();
+  for(let t=0;t<tries;t++){
+    const c=cols[(Math.random()*cols.length)|0];
+    const b=c.extent.spatial.bbox[0], p=0.002;
+    const bb=[b[0]-p,b[1]-p,b[2]+p,b[3]+p].map(n=>n.toFixed(6)).join(",");
+    let f; try{ f=(await jget(`${API}/search?bbox=${bb}&limit=200`)).features||[]; }catch{ continue; }
+    const fresh=f.filter(x=>!seen.has(x.id)&&(x.assets?.hd||x.assets?.sd));
+    if(!fresh.length) continue;
+    const x=fresh[(Math.random()*fresh.length)|0]; seen.add(x.id);
+    const io=x.properties?.["pers:interior_orientation"]||{}, dims=io.sensor_array_dimensions;
+    return { c:x.geometry.coordinates, url:x.assets.hd?.href||x.assets.sd?.href,
+             pano: io.field_of_view===360 || !!(dims&&Math.abs(dims[0]/dims[1]-2)<0.02),
+             t:x.properties?.datetime||null, kinds:[], signal:0, country:null, area:null };
+  }
+  return null;
+}
+
+/* Level 1: the hand-reviewed set, played IN ORDER. Every frame here was looked at
+   by a human, rejected unless a beginner could actually name the country from
+   something visible, and given a written lesson. The order is the whole point —
+   the first rounds are meant to be near-impossible to get wrong, so the ramp does
+   the teaching. Random sampling would destroy that. */
+function curatedRounds(){ return window.CURATED?.rounds || []; }
+let curatedPos = 0;
+function pickCurated(){
+  const rounds = curatedRounds();
+  if (!rounds.length) return null;
+  const c = rounds[curatedPos % rounds.length];
+  curatedPos++;
+  return c;
+}
+
+/* Country-weighted sampling for the index-backed tiers.
+
+   Bulgaria is 5% of the country index, so uniform sampling over frames buries home
+   ground under France and Croatia — which have more coverage, not more teaching
+   value. Sample the COUNTRY first (Bulgaria at HOME_SHARE, the rest splitting the
+   remainder evenly), then a frame inside it. Equal shares for the others is also
+   deliberate: how many Panoramax frames a country has is an artefact of who went
+   out with a camera, and should not decide how often you are asked about it. */
+const HOME_COUNTRY = "Bulgaria";
+const HOME_SHARE   = 0.25;
+
+function pickWeightedCountry(pool, answerable){
+  const byCountry = new Map();
+  for (const c of pool) {
+    if (!c.country || (answerable && !answerable.has(c.country))) continue;
+    if (!byCountry.has(c.country)) byCountry.set(c.country, []);
+    byCountry.get(c.country).push(c);
+  }
+  if (byCountry.size < 2) return null;
+  const others = [...byCountry.keys()].filter(k => k !== HOME_COUNTRY);
+  const home = byCountry.get(HOME_COUNTRY);
+  // If home ground has nothing left in the pool, its share goes back to the others.
+  const homeP = home?.length ? HOME_SHARE : 0;
+  const r = Math.random();
+  if (r < homeP) return home;
+  const i = Math.floor((r - homeP) / (1 - homeP) * others.length);
+  return byCountry.get(others[Math.min(i, others.length - 1)]);
+}
+
+async function pickFromIndex(){
+  const idx = await loadIndex(LV.index);
+  let pool = idx.candidates.filter(c => !seen.has(c.id));
+  if (!pool.length) { seen.clear(); pool = idx.candidates; }
+  // Fallback path only: L1 reaches here when curated-data.js is missing. Keep the
+  // old behaviour of serving only the strongest-signal frames rather than silently
+  // degrading the beginner tier to L2.
+  if (LV.curated) {
+    const strong = pool.filter(c => c.signal >= 8);
+    if (strong.length >= 12) pool = strong;
+  }
+  if (LV.mode === "country") {
+    /* Never serve a frame whose country is not on the answer grid. The UK survives
+       filtering with six frames, which is below the grid's threshold — so before
+       this check it could be served as an unanswerable round. Uniform sampling made
+       that vanishingly rare; weighting by country made it roughly 1 round in 60. */
+    const answerable = answerableCountries(idx);
+    const eligible = pool.filter(c => c.country && answerable.has(c.country));
+    if (eligible.length) pool = eligible;
+    const bucket = pickWeightedCountry(pool, answerable);
+    if (bucket?.length) pool = bucket;
+  }
+  const c = pool[(Math.random()*pool.length)|0];
+  seen.add(c.id);
+  return c;
+}
+
+/* ------------------------------------------------------------- flat viewer */
+let pv=null, fz=1, fx=0, fy=0;
+const applyFlat = () => $("#flatImg").style.transform=`translate(${fx}px,${fy}px) scale(${fz})`;
+(function(){
+  const w=$("#flatWrap"); let down=false,sx=0,sy=0;
+  w.addEventListener("pointerdown",e=>{down=true;sx=e.clientX-fx;sy=e.clientY-fy;
+    w.classList.add("drag");w.setPointerCapture(e.pointerId);});
+  w.addEventListener("pointermove",e=>{if(!down)return;fx=e.clientX-sx;fy=e.clientY-sy;applyFlat();});
+  w.addEventListener("pointerup",()=>{down=false;w.classList.remove("drag");});
+  w.addEventListener("wheel",e=>{e.preventDefault();
+    const r=w.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    const k=e.deltaY<0?1.15:1/1.15,nz=Math.max(.4,Math.min(8,fz*k));
+    fx=mx-(mx-fx)*(nz/fz); fy=my-(my-fy)*(nz/fz); fz=nz; applyFlat();},{passive:false});
+})();
+/* Imagery can fail for reasons the index cannot fully predict — a host without CORS
+   headers (the 360 viewer needs pixel access), a dead link, a stalled transfer. Rather
+   than leaving the player on a spinner, fail over to another candidate automatically.
+   Pannellum's own error event does not fire for a CORS rejection — it throws inside its
+   XHR handler instead — so a timeout is the only reliable catch-all. */
+const LOAD_TIMEOUT_MS = 12000;
+const MAX_SKIPS = 4;
+let loadTimer = null, skips = 0;
+
+function clearLoadTimer(){ if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; } }
+function armLoadTimer(){
+  clearLoadTimer();
+  loadTimer = setTimeout(() => onImageryFailed("timed out"), LOAD_TIMEOUT_MS);
+}
+function onImageryFailed(why){
+  clearLoadTimer();
+  if (revealed) return;
+  if (skips < MAX_SKIPS) { skips++; msg(`Imagery ${why} — trying another location…`, true); newRound(true); }
+  else msg(`Imagery ${why}, and several retries also failed.<br>Press Next to try again.`);
+}
+
+/* Fit the photo to the viewer.
+
+   This has to be retried rather than computed once. #flatWrap is switched from
+   display:none to display:block immediately before the image is requested, and a
+   cached image fires load before the browser has laid the wrapper out — so
+   clientWidth/clientHeight are still 0, the scale factor computes as 0, and the
+   round renders as a black rectangle. It only shows up on a warm cache, which is
+   exactly the state a returning player is in. */
+let flatFitPending = false;
+function fitFlat(){
+  const w=$("#flatWrap"), img=$("#flatImg");
+  const rw=w.clientWidth, rh=w.clientHeight;
+  if (!rw || !rh || !img.naturalWidth) { flatFitPending = true; return; }
+  flatFitPending = false;
+  fz=Math.min(rw/img.naturalWidth, rh/img.naturalHeight);
+  fx=(rw-img.naturalWidth*fz)/2; fy=(rh-img.naturalHeight*fz)/2; applyFlat();
+}
+/* A ResizeObserver, not a rAF retry loop: rAF is throttled while the tab is not
+   painting, so a background tab would sit on an unfitted image until it was
+   looked at. ResizeObserver fires as soon as the wrapper actually has a box. */
+new ResizeObserver(()=>{ if (flatFitPending) fitFlat(); }).observe($("#flatWrap"));
+function showFlat(url){
+  $("#pano").style.display="none"; if(pv){pv.destroy();pv=null;}
+  const w=$("#flatWrap"), img=$("#flatImg"); w.style.display="block";
+  armLoadTimer();
+  img.onload=()=>{ clearLoadTimer(); fitFlat(); hideMsg(); };
+  img.onerror=()=>onImageryFailed("failed to load");
+  img.src=url;
+}
+addEventListener("resize", ()=>{ if($("#flatWrap").style.display==="block") fitFlat(); });
+function showPano(url){
+  $("#flatWrap").style.display="none";
+  const el=$("#pano"); el.style.display="block";
+  if(pv){pv.destroy();pv=null;}
+  armLoadTimer();
+  pv=pannellum.viewer("pano",{type:"equirectangular",panorama:url,autoLoad:true,
+    showZoomCtrl:true,showFullscreenCtrl:false,compass:false,hfov:100,
+    backgroundColor:[0,0,0],crossOrigin:"anonymous"});
+  pv.on("load",()=>{ clearLoadTimer(); hideMsg(); });
+  pv.on("error",()=>onImageryFailed("failed to load"));
+}
+
+/* ----------------------------------------------------------- country picker */
+const MIN_FRAMES_PER_COUNTRY = 20;   // below this a country is a trap, not an option
+/* The countries a player is allowed to be asked about, and therefore exactly the
+   countries the grid offers. One definition, used by both the picker and the
+   sampler, so a frame can never be served without its answer on the board. */
+function answerableCountries(idx){
+  const counts = {};
+  for (const c of idx?.candidates || []) if (c.country) counts[c.country] = (counts[c.country]||0) + 1;
+  const keep = new Set(Object.keys(counts).filter(c => counts[c] >= MIN_FRAMES_PER_COUNTRY));
+  // A curated answer is always on the board, however thin that country is in the index.
+  for (const r of curatedRounds()) if (r.country) keep.add(r.country);
+  return keep;
+}
+function buildCountryGrid(){
+  const all = [...answerableCountries(indexes[LV.index])].sort();
+  $("#cgrid").innerHTML = all.map(c=>`<button class="cbtn" data-c="${c}">${c}</button>`).join("");
+  $("#cgrid").querySelectorAll(".cbtn").forEach(b=>b.addEventListener("click",()=>{
+    if(revealed) return;
+    $("#cgrid").querySelectorAll(".cbtn").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel"); guessCountry=b.dataset.c; $("#submit").disabled=false;
+  }));
+}
+
+/* ------------------------------------------------------------------ hints */
+/* Which atlas page actually decides the current frame. On a reviewed round the
+   lesson names it; otherwise fall back to the frame's OSM signal. (The pre-review
+   fallback pointed at "script", which is not a category id — the deep link opened
+   the atlas on nothing. The id is "writing-system".) */
+function atlasTargetForRound(){
+  const pick = current?.lesson?.atlas?.[0];
+  if (pick) return [pick.key, pick.label];
+  const road = current?.kinds?.includes("route_ref") || current?.kinds?.includes("traffic_sign");
+  return road ? ["road-signs", "Road signs — shape, colour, font"]
+              : ["writing-system", "Writing system and diacritics"];
+}
+
+function hintText(tier){
+  const A = window.ATLAS;
+  if (tier === 1) {
+    /* On a reviewed frame the honest first hint is WHERE to look — a human checked
+       that this spot in this image carries the clue. It points, it does not read. */
+    const where = current.lesson?.firstWhere;
+    if (where) return `<p><b>Look here: ${where}.</b></p><p>Something in that part of the frame names the place. Read it before you guess.</p>`;
+    if (!current.kinds?.length) return "<p>No mapped signal for this frame — this is the wild tier. Start with the basics: driving side, road markings, script on any text, vegetation.</p>";
+    const parts = current.kinds.map(k=>KIND_HINT[k]).filter(Boolean);
+    return "<p><b>There is " + parts.map(p=>p[0]).join(", and ") + ".</b></p>" +
+           parts.map(p=>"<p>"+p[1]+"</p>").join("");
+  }
+  if (tier === 2) {
+    const c = current.country;
+    const rec = A?.countries?.find(x=>x.name===c);
+    if (!rec) return "<p>Narrowing: check the writing system first — Latin, Cyrillic or Greek splits Europe into three big blocks straight away. Then driving side, then plate colour.</p>";
+    const bits=[];
+    if(rec.script) bits.push(`<b>Script:</b> ${rec.script}`);
+    if(rec.roadLines) bits.push(`<b>Road markings:</b> ${rec.roadLines}`);
+    if(rec.plate) bits.push(`<b>Plates:</b> ${rec.plate}`);
+    if(rec.bollard) bits.push(`<b>Bollards:</b> ${rec.bollard}`);
+    return "<p>What these clues narrow to, without naming the country:</p>" +
+           bits.slice(0,3).map(b=>"<p>"+b+"</p>").join("");
+  }
+  const [key, label] = atlasTargetForRound();
+  return `<p>Open the atlas at the category that decides this one: <a onclick="openAtlas('${key}')">${label}</a>.</p>`;
+}
+document.querySelectorAll(".hbtn").forEach(b=>b.addEventListener("click",()=>{
+  const tier=+b.dataset.h;
+  if(revealed || hintsUsed.includes(tier) || LV.noHints) return;
+  hintsUsed.push(tier); b.classList.add("used");
+  const out=$("#hintOut"); out.style.display="block";
+  out.innerHTML += hintText(tier);
+  if (map && LV.mode==="pin") setTimeout(()=>map.resize(), 50);  // panel grew; give the map its size back
+  if (tier===3) openAtlas(atlasTargetForRound()[0]);
+}));
+
+/* -------------------------------------------------------------- round flow */
+function applyLevelUI(){
+  $("#levels").querySelectorAll(".lv").forEach(el=>el.classList.toggle("on", +el.dataset.l===LV.key));
+  const pin = LV.mode==="pin";
+  $("#map").style.display        = pin ? "block" : "none";
+  $("#countryPick").style.display= pin ? "none"  : "block";
+  $("#radiusBox").style.display  = pin ? "flex"  : "none";
+  $("#hints").style.display      = LV.noHints ? "none" : "flex";
+  if (pin) {   // reset the radius to something sane for this tier's geographic scope
+    $("#radius").value = scale().radiusDefault;
+    $("#rVal").textContent = fmtKm(sliderToKm(scale().radiusDefault));
+  }
+  if (pin && map) setTimeout(()=>map.resize(), 60);
+}
+
+async function newRound(isRetry=false){
+  if (!isRetry) skips = 0;
+  clearLoadTimer();
+  revealed=false; guess=null; guessCountry=null; current=null; hintsUsed=[];
+  $("#result").style.display="none"; $("#next").style.display="none";
+  $("#submit").style.display="block"; $("#submit").disabled=true;
+  $("#hintOut").style.display="none"; $("#hintOut").innerHTML="";
+  document.querySelectorAll(".hbtn").forEach(b=>b.classList.remove("used"));
+  $("#rHint").textContent="click the map to place your guess";
+  $("#badges").innerHTML="";
+  const empty={type:"FeatureCollection",features:[]};
+  setSrc("circle",empty); setSrc("link",empty); setSrc("pts",empty);
+  if (mapReady && LV.mode==="pin") map.easeTo({center:scale().center,zoom:scale().zoom,duration:400});
+  msg("Finding a location…", true);
+
+  try {
+    if (LV.index) await loadIndex(LV.index);      // the country grid is built from it
+    current = LV.source==="live"    ? await pickLive()
+            : LV.source==="curated" ? (pickCurated() || await pickFromIndex())
+            : await pickFromIndex();
+  } catch(e){ msg("Could not load candidates: "+e.message+"<br><br>Run <code>node build-index.mjs --region countries</code> first."); return; }
+  if(!current){ msg("No imagery found. Try another level."); return; }
+
+  if (LV.mode==="country") { buildCountryGrid();
+    $("#cgrid").querySelectorAll(".cbtn").forEach(b=>b.classList.remove("sel","truth","wrong")); }
+
+  msg("Loading imagery…", true);
+  current.pano ? showPano(current.url) : showFlat(current.url);
+
+  const nCur = curatedRounds().length;
+  $("#badges").innerHTML =
+    `<div class="badge">${current.pano?"360° panorama":"flat photo"}</div>` +
+    (current.lesson ? `<div class="badge sig">reviewed</div>`
+      : current.signal ? `<div class="badge sig">signal <b>${current.signal}</b></div>` : "") +
+    `<div class="badge">L${LV.key} ${LV.name}</div>` +
+    (current.lesson && nCur
+      ? `<div class="badge">round <b>${((curatedPos-1) % nCur)+1}</b> of ${nCur}</div>`
+      : `<div class="badge">round <b>${run.rounds+1}</b></div>`);
+}
+
+function hintPenalty(){ return hintsUsed.reduce((s,t)=>s+(LV.hintCost[t-1]||0), 0); }
+
+$("#submit").addEventListener("click", () => {
+  if(!current || revealed) return;
+  if(LV.mode==="pin" && !guess) return;
+  if(LV.mode==="country" && !guessCountry) return;
+  revealed=true;
+  const pen = hintPenalty();
+  let html="", sun="";
+
+  if (LV.mode==="country") {
+    const ok = guessCountry===current.country;
+    if(ok) run.correct++;
+    run.rounds++;
+    const pts = (ok?COUNTRY_POINTS:0) - pen;
+    run.total += pts;
+    $("#cgrid").querySelectorAll(".cbtn").forEach(b=>{
+      if(b.dataset.c===current.country) b.classList.add("truth");
+      else if(b.dataset.c===guessCountry) b.classList.add("wrong");
+    });
+    html = `<div class="big" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?"Correct":"Wrong"}</div>
+      <div style="color:var(--dim);margin-top:2px">It was <b style="color:var(--ink)">${current.country}</b>${
+        current.area?` — ${current.area}`:""}${ok?"":`, you said ${guessCountry}`}</div>
+      <div class="brk"><span>country</span><span>${ok?"+"+COUNTRY_POINTS:"0"}</span>
+        ${pen?`<span>hints used (${hintsUsed.length})</span><span>−${pen}</span>`:""}
+        <span>round</span><span>${pts}</span></div>`;
+  } else {
+    const d = haversine(guess, current.c);
+    const r = sliderToKm(+$("#radius").value);
+    const s = scorePin(d, r);
+    const pts = s.total - pen;
+    run.total += pts; run.rounds++; if(s.hit) run.hits++;
+
+    setSrc("circle", circlePolygon(guess, r));
+    setSrc("link", {type:"Feature",geometry:{type:"LineString",coordinates:[guess,current.c]}});
+    setSrc("pts", {type:"FeatureCollection",features:[
+      {type:"Feature",properties:{color:"#2f81f7"},geometry:{type:"Point",coordinates:guess}},
+      {type:"Feature",properties:{color:"#3fb950"},geometry:{type:"Point",coordinates:current.c}}]});
+    map.fitBounds(new maplibregl.LngLatBounds(guess,guess).extend(current.c),
+      {padding:70,maxZoom:11,duration:700});
+
+    const v = s.hit
+      ? (r <= scale().Rref*0.35
+          ? ['v-good',"Inside your radius and you kept it tight — that is good calibration."]
+          : s.calibration>=0
+            ? ['v-warn',`Inside, but wide: it only earned ${Math.round(s.calibration)} pts. A safe radius buys almost nothing.`]
+            : ['v-warn',`Inside — but ${fmtKm(r)} is wider than the ${fmtKm(scale().Rref)} reference, so it cost you ${Math.abs(Math.round(s.calibration))} pts.`])
+      : ['v-bad',`Outside by ${fmtKm(d-r)}. Overconfidence costs ${PEN}× the shortfall.`];
+
+    html = `<div class="big">${Math.round(pts).toLocaleString()}<span style="font-size:13px;color:var(--dim);font-weight:400"> pts</span></div>
+      <div style="color:var(--dim);font-size:12px;margin-top:2px">off by
+        <b style="color:var(--ink);font-family:var(--mono)">${fmtKm(d)}</b> · radius ${fmtKm(r)}
+        ${current.country?` · ${current.country}`:""}</div>
+      <div class="brk">
+        <span>distance ${DIST_MAX}·e^(−${d.toFixed(0)}/${scale().D})</span><span>${Math.round(s.distance)}</span>
+        <span>W = r + ${PEN}·max(0, d−r)</span><span>${s.W.toFixed(0)} km</span>
+        <span>calibration ${CALIB_K}·(1 − W/${scale().Rref})</span><span>${s.calibration>=0?"+":""}${Math.round(s.calibration)}</span>
+        ${pen?`<span>hints used (${hintsUsed.length})</span><span>−${pen}</span>`:""}
+      </div>
+      <div class="verdict ${v[0]}">${v[1]}</div>`;
+  }
+
+  /* "How to read this one".
+     Curated rounds carry a written lesson: a human looked at that exact frame and
+     wrote down which clue to find first, where it is, what it rules out on its own,
+     and what confirms it. Everything else falls back to text assembled from the
+     frame's OSM signal plus the atlas entry for the true country — weaker, because
+     OSM proximity only says something readable is NEARBY, not that it is in shot. */
+  if (current.lesson) {
+    const L = current.lesson;
+    const esc = s => String(s).replace(/[<>&]/g, ch => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;" }[ch]));
+    const step = (label, body, where) => body ? `<div class="step"><span class="lbl">${label}</span>${
+      esc(body)}${where ? ` <span class="where">${esc(where)}</span>` : ""}</div>` : "";
+    const links = (L.atlas || []).map(a =>
+      `<a onclick="openAtlas('${esc(a.key)}')">${esc(a.label)}</a>`).join(" · ");
+    html += `<div class="lesson"><h4>How to read this one</h4>
+      ${step("Look here first", L.first, L.firstWhere)}
+      ${step("That alone narrows it to", L.narrows)}
+      ${step("Confirm with", L.second, L.secondWhere)}
+      ${L.note ? step("Worth knowing", L.note) : ""}
+      ${links ? `<div class="atlaslinks">Atlas: ${links}</div>` : ""}</div>`;
+  } else if (current.kinds?.length || current.country) {
+    const A = window.ATLAS;
+    const rec = A?.countries?.find(x=>x.name===current.country);
+    const reads = (current.kinds||[]).map(k=>KIND_HINT[k]?.[1]).filter(Boolean);
+    const tells = rec?.tells?.slice(0,3) || [];
+    if (reads.length || tells.length) html += `<div class="lesson"><h4>How to read this one</h4>
+      ${reads.map(t=>`<div>• ${t}</div>`).join("")}
+      ${tells.length?`<div style="margin-top:7px;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Tells for ${current.country}</div>`:""}
+      ${tells.map(t=>`<div>• ${t}</div>`).join("")}</div>`;
+  }
+
+  if (current.t && window.SunCalc) {
+    const when=new Date(current.t), p=SunCalc.getPosition(when,current.c[1],current.c[0]);
+    const alt=deg(p.altitude), az=(deg(p.azimuth)+180)%360, sh=(az+180)%360;
+    const ratio = alt>1 ? (1/Math.tan(rad(alt))).toFixed(2) : "∞";
+    sun = `<div class="aids"><b>Sun at capture</b> (${when.toISOString().replace("T"," ").slice(0,16)} UTC)<br>
+      altitude <b>${alt.toFixed(1)}°</b> · solar azimuth <b>${az.toFixed(0)}°</b><br>
+      shadows point <b>${sh.toFixed(0)}°</b>, length <b>${ratio}×</b> object height<br>
+      <a href="https://www.openstreetmap.org/#map=17/${current.c[1].toFixed(5)}/${current.c[0].toFixed(5)}"
+         target="_blank" rel="noopener">open truth in OSM →</a></div>`;
+  }
+
+  const acc = LV.mode==="country"
+    ? `accuracy <b style="color:var(--ink)">${Math.round(100*run.correct/run.rounds)}%</b>`
+    : `hit rate <b style="color:var(--ink)">${Math.round(100*run.hits/run.rounds)}%</b> — well-calibrated play converges on ${CONF_PCT}%`;
+
+  $("#result").innerHTML = html + sun +
+    `<div id="runStats">run total <b style="color:var(--ink)">${Math.round(run.total).toLocaleString()}</b>
+      over ${run.rounds} round${run.rounds>1?"s":""} · ${acc}</div>`;
+  $("#result").style.display="block";
+  $("#submit").style.display="none"; $("#next").style.display="block";
+});
+// wrapped: passing the handler directly would hand the MouseEvent to isRetry
+$("#next").addEventListener("click", () => newRound());
+
+/* ------------------------------------------------------------------ atlas */
+let atlasSel = null;
+function renderAtlasNav(filter=""){
+  const A=window.ATLAS; if(!A) return;
+  const f=filter.toLowerCase();
+  const cats=(A.categories||[]).filter(c=>!f||JSON.stringify(c).toLowerCase().includes(f));
+  const cos=(A.countries||[]).filter(c=>!f||JSON.stringify(c).toLowerCase().includes(f));
+  $("#atlasNavList").innerHTML =
+    `<div class="anavh">Clue categories</div>` +
+    cats.map(c=>`<button class="anav ${atlasSel==="c:"+c.id?"on":""}" data-k="c:${c.id}">${c.icon||"•"} ${c.name}</button>`).join("") +
+    `<div class="anavh">Countries</div>` +
+    cos.map(c=>`<button class="anav ${atlasSel==="n:"+c.name?"on":""}" data-k="n:${c.name}">${c.name}</button>`).join("");
+  $("#atlasNavList").querySelectorAll(".anav").forEach(b=>
+    b.addEventListener("click",()=>{ atlasSel=b.dataset.k; renderAtlasNav($("#atlasSearch").value); renderAtlasBody(); }));
+}
+function renderAtlasBody(){
+  const A=window.ATLAS, B=$("#atlasBody");
+  if(!A){ B.innerHTML=`<div class="empty">The clue atlas has not been generated yet.<br>
+    <code>atlas-data.js</code> is missing from this folder.</div>`; return; }
+  if(!atlasSel){ B.innerHTML=`<div class="empty">Pick a clue category or a country on the left.<br><br>
+    Study these <em>before</em> drilling — the atlas is the reference library the drills assume you have.</div>`; return; }
+  const [t,id]=[atlasSel.slice(0,1), atlasSel.slice(2)];
+  if(t==="c"){
+    const c=(A.categories||[]).find(x=>x.id===id); if(!c) return;
+    B.innerHTML=`<h3>${c.icon||""} ${c.name}</h3><div class="why">${c.why||""}</div>
+      ${c.how?`<div class="how"><b>How to read it:</b> ${c.how}</div>`:""}
+      ${(c.clues||[]).map(cl=>`<div class="clue">
+        <div class="v">${cl.value}${cl.unverified?'<span class="unv">unverified</span>':""}</div>
+        <div class="m">${cl.meansWhat||""}</div>
+        ${cl.where?.length?`<div class="w">→ ${cl.where.join(" · ")}</div>`:""}
+        ${cl.note?`<div class="w">${cl.note}</div>`:""}</div>`).join("")}`;
+  } else {
+    const c=(A.countries||[]).find(x=>x.name===id); if(!c) return;
+    const f=[["Script",c.script],["Plates",c.plate],["Road lines",c.roadLines],["Bollards",c.bollard],
+             ["Poles",c.poles],["Architecture",c.architecture],["Vegetation",c.vegetation],
+             ["Domain",c.domain],["Phone",c.phone]].filter(x=>x[1]);
+    B.innerHTML=`<h3>${c.name}${c.code?` <span style="color:var(--dim);font-size:14px">${c.code}</span>`:""}</h3>
+      ${c.tells?.length?`<ul class="ctells">${c.tells.map(t=>`<li>${t}</li>`).join("")}</ul>`:""}
+      <div class="cfacts">${f.map(([k,v])=>`<span>${k}</span><span>${v}</span>`).join("")}</div>`;
+  }
+}
+/* Accepts a category id ("road-signs"), or an explicit key — "c:road-signs" for a
+   category, "n:Bulgaria" for a country page. */
+function openAtlas(key){
+  if(key) atlasSel = /^[cn]:/.test(key) ? key : "c:"+key;
+  $("#atlas").style.display="block"; renderAtlasNav($("#atlasSearch").value); renderAtlasBody();
+}
+window.openAtlas = openAtlas;
+$("#atlasBtn").addEventListener("click",()=>openAtlas());
+$("#atlasClose").addEventListener("click",()=>$("#atlas").style.display="none");
+$("#atlas").addEventListener("click",e=>{ if(e.target.id==="atlas") $("#atlas").style.display="none"; });
+$("#atlasSearch").addEventListener("input",e=>renderAtlasNav(e.target.value));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("#atlas").style.display="none"; });
+
+/* ------------------------------------------------------------------- boot */
+$("#levels").innerHTML = Object.values(LEVELS).map(l=>
+  `<button class="lv" data-l="${l.key}"><b>L${l.key} ${l.name}</b>${l.sub}</button>`).join("");
+$("#levels").querySelectorAll(".lv").forEach(b=>b.addEventListener("click", async ()=>{
+  LV = LEVELS[+b.dataset.l];
+  run={total:0,rounds:0,hits:0,correct:0}; seen.clear(); curatedPos=0;
+  applyLevelUI(); await newRound();
+}));
+
+(async function boot(){
+  $("#rVal").textContent = fmtKm(sliderToKm(+$("#radius").value));
+  $("#rLabel").textContent = `Confidence radius — be ~${CONF_PCT}% sure the truth is inside`;
+  initMap(); applyLevelUI();
+  await newRound();
+})();
+</script>
+</body>
+</html>

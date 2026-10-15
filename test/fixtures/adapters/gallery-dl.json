@@ -1,0 +1,29 @@
+[
+  [
+    2,
+    {
+      "category": "directlink",
+      "domain": "upload.wikimedia.org",
+      "extension": "png",
+      "filename": "PNG_transparency_demonstration_1",
+      "fragment": null,
+      "path": "wikipedia/commons/4/47",
+      "query": null,
+      "subcategory": "wikimedia.org"
+    }
+  ],
+  [
+    3,
+    "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png",
+    {
+      "category": "directlink",
+      "domain": "upload.wikimedia.org",
+      "extension": "png",
+      "filename": "PNG_transparency_demonstration_1",
+      "fragment": null,
+      "path": "wikipedia/commons/4/47",
+      "query": null,
+      "subcategory": "wikimedia.org"
+    }
+  ]
+]

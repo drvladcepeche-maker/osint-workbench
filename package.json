@@ -1,0 +1,41 @@
+{
+  "name": "osint-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first OSINT workbench. Files are truth, SQLite is a rebuildable index.",
+  "license": "MIT",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "design:contrast": "node scripts/contrast.mjs",
+    "design:lint": "node scripts/design-lint.mjs",
+    "design": "npm run design:lint && npm run design:contrast",
+    "test": "node scripts/build-tests.mjs && node scripts/run-tests.mjs",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
+    "icons": "node scripts/make-icons.mjs",
+    "icons:preview": "node scripts/make-icons.mjs --preview",
+    "dist": "node scripts/dist.mjs",
+    "dist:dir": "node scripts/dist.mjs --dir"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "esbuild": "^0.28.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6"
+  }
+}

@@ -1,0 +1,1681 @@
+/* atlas-data.js — clue library for the GEOINT trainer.
+ * Plain classic script. No imports, no exports, no build step.
+ * Defines exactly one global: window.ATLAS
+ *
+ * Structure mirrors how country guides are normally organised:
+ *   categories[] = the "meta" — one clue family at a time, taught in isolation
+ *   countries[]  = the per-country page — every clue family answered for one place
+ *
+ * Any clue whose truth we could not confirm carries  unverified: true
+ * Treat those as leads to check, never as facts to guess on.
+ */
+
+window.ATLAS = {
+
+  categories: [
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "driving-side",
+      name: "Driving side",
+      icon: "🚗",
+      why: "It is the single cheapest cut you can make. One glance removes roughly a third of the planet, and it is visible in almost every photo that contains a road.",
+      how: "Do not judge from one parked car — people park badly. Look at moving traffic and ask which side it occupies. Better tests: which side the steering wheel is on in an oncoming car, which way a roundabout flows, which side of the road the bus stops and their shelters serve, and which side the arrow signs push you to. On a divided road, the carriageway you are on tells you immediately.",
+      clues: [
+        {
+          value: "Right-hand traffic (RHT) — traffic keeps right, steering wheel on the left",
+          meansWhat: "The default for about two thirds of the world. All of continental Europe, the whole Balkan peninsula, the Americas except Guyana and Suriname, China, Russia, most of Africa's west and north.",
+          where: ["Bulgaria", "Romania", "Serbia", "North Macedonia", "Greece", "Turkey", "Croatia", "Hungary", "Poland", "Ukraine", "Russia", "Italy", "Spain", "Germany", "France"],
+          note: "For a learner in the Balkans this clue almost never helps on its own — every neighbour drives on the right. Its value is negative: it kills the UK, Ireland, Malta and Cyprus."
+        },
+        {
+          value: "Left-hand traffic (LHT) — traffic keeps left, steering wheel on the right",
+          meansWhat: "A short, memorisable list dominated by former British territories plus Japan, Indonesia and Thailand.",
+          where: ["United Kingdom", "Ireland", "Malta", "Cyprus", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Nepal", "Japan", "Thailand", "Indonesia", "Malaysia", "Singapore", "Hong Kong", "Macau", "Australia", "New Zealand", "South Africa", "Kenya", "Tanzania", "Uganda", "Zambia", "Zimbabwe", "Botswana", "Namibia", "Mozambique", "Guyana", "Suriname", "Jamaica"],
+          note: "In Europe only the UK, Ireland, Malta and Cyprus. That makes LHT in a European-looking photo a near-instant answer."
+        },
+        {
+          value: "Roundabout flow direction",
+          meansWhat: "Anticlockwise flow means right-hand traffic; clockwise flow means left-hand traffic.",
+          where: ["Worldwide"],
+          note: "The most reliable single test when there are no moving cars — read the arrows on the roundabout sign or the deflection islands."
+        },
+        {
+          value: "Right-hand-drive cars in a right-hand-traffic country",
+          meansWhat: "A large fleet of imported Japanese used cars with the wheel on the wrong side for the local traffic.",
+          where: ["Russia (Siberia and Far East)", "Georgia", "Kyrgyzstan", "Kenya (LHT, so normal there)"],
+          note: "In practice: the further east you go in Russia from about Novosibirsk, the more right-hand-drive cars appear. A mismatch is a location clue, not a mistake."
+        },
+        {
+          value: "Bus and coach passenger doors",
+          meansWhat: "Doors are always on the kerb side, so a bus with doors on its right side is built for right-hand traffic.",
+          where: ["Worldwide"],
+          note: "Useful when the only vehicle in frame is parked."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "road-markings",
+      name: "Road markings",
+      icon: "🛣️",
+      why: "Paint is in nearly every street-level photo, it is specified by a national standard, and it changes at the border even when the colour does not. Dash length, gap length, line thickness and whether the centre is doubled are all national fingerprints.",
+      how: "Read the OUTER (edge) line first: is there one at all, is it solid or dashed, and how long are the dashes relative to the gaps? Then the CENTRE line: single or double, thick or thin, and its colour. Use the width of a pedestrian-crossing stripe as your ruler for judging thickness. Finally check the state of the paint — crisp and bright versus worn and grey is itself regional.",
+      clues: [
+        {
+          value: "White centre line and white edge line",
+          meansWhat: "The European default. Tells you almost nothing on its own, so move straight to pattern and thickness.",
+          where: ["Bulgaria", "Romania", "Serbia", "Croatia", "Hungary", "Poland", "Czechia", "Slovakia", "Slovenia", "Turkey", "Italy", "Spain", "Germany", "France"],
+          note: "Yellow paint in these countries usually means a restriction (no parking at the kerb, roadworks diversion, bus or bike lane), not a lane divider."
+        },
+        {
+          value: "Yellow centre line separating opposing traffic",
+          meansWhat: "A genuinely strong continental cut — it is the North American convention and is rare in Europe.",
+          where: ["United States", "Canada", "Mexico", "Norway", "Iceland", "Japan", "South Korea"],
+          note: "In the Americas yellow separates opposing traffic and white separates same-direction lanes. In Europe, Norway is the notable yellow-centre country."
+        },
+        {
+          value: "Iceland uses yellow centre lines on rural roads",
+          meansWhat: "Would place a yellow-centre European photo in Iceland rather than Norway.",
+          where: ["Iceland"],
+          note: "Check against a second Iceland clue (treeless lava landscape, Icelandic characters Þ and Ð) before committing.",
+          unverified: true
+        },
+        {
+          value: "Thin, faded lines on visibly cracked and tar-patched asphalt",
+          meansWhat: "Lower-budget maintenance regimes. In the Balkans this is a real Bulgarian tell.",
+          where: ["Bulgaria", "Romania", "Albania", "Ukraine", "Moldova"],
+          note: "Bulgaria in particular pairs unusually thin paint with snaking black tar seams over old cracks."
+        },
+        {
+          value: "Edge lines made of short dashes with narrow gaps, plus an unusually thick centre line",
+          meansWhat: "Romania. This is the cleanest way to separate Romania from Bulgaria when the text is not readable.",
+          where: ["Romania"],
+          note: "Bulgaria's lines are thin; Romania's centre line is fat. Learn the pair together."
+        },
+        {
+          value: "Solid white edge lines with no centre line at all on a two-way rural road",
+          meansWhat: "A distinctive layout used widely in two countries that otherwise look nothing alike.",
+          where: ["Czechia", "Italy"],
+          note: "Combine with poles: Italy has round concrete poles with trident tops, Czechia has paired wide concrete poles."
+        },
+        {
+          value: "Double solid centre lines used very liberally, even on modest roads",
+          meansWhat: "Poland leans on double centre lines far more than its neighbours.",
+          where: ["Poland"],
+          note: "Pair with Poland's yellow warning signs and wraparound red bollard stripe."
+        },
+        {
+          value: "Long outer dashes",
+          meansWhat: "Slovenia's edge-line rhythm is noticeably longer than in neighbouring Croatia or Austria.",
+          where: ["Slovenia"],
+          note: "A subtle clue — use it to confirm, not to open."
+        },
+        {
+          value: "Double solid white centre lines, slightly faded, plus yellow paint used more than usual",
+          meansWhat: "Greece.",
+          where: ["Greece"],
+          note: "Greek towns show more yellow kerb and restriction paint than other southern European countries."
+        },
+        {
+          value: "Wide four-lane divided highway with only a painted double centre line and no barrier",
+          meansWhat: "Turkey builds enormous amounts of divided road, and the eastern half often separates directions with paint alone.",
+          where: ["Turkey"],
+          note: "Combine with steel lattice utility poles for a fast Turkey call."
+        },
+        {
+          value: "Yellow paint on the cycle lane only, white everywhere else",
+          meansWhat: "Hungary.",
+          where: ["Hungary"],
+          note: "Do not read the yellow cycle lane as a yellow lane divider."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "licence-plates",
+      name: "Licence plates",
+      icon: "🔢",
+      why: "A plate is a national identity document bolted to the front of every vehicle. Even at low resolution the layout — proportions, coloured bands, where a coat of arms sits — is readable long before the characters are.",
+      how: "Work outside-in. First the shape: long thin European plate, or squarer American or Japanese one. Then the left edge: is there a blue vertical band? Then the right edge: a second band? Then the middle: a coat of arms or badge between character groups? Only last do you try to read letters. Front and rear plates can differ in shape, so check both if you can.",
+      clues: [
+        {
+          value: "Blue band on the LEFT with a ring of yellow EU stars and a country code",
+          meansWhat: "An EU member state (or a country that copied the design).",
+          where: ["Bulgaria", "Romania", "Greece", "Croatia", "Hungary", "Poland", "Czechia", "Slovakia", "Slovenia", "Italy", "Spain", "Germany", "France"],
+          note: "The code under the stars is the answer: BG, RO, GR, HR, H, PL, CZ, SK, SLO, I, E, D, F."
+        },
+        {
+          value: "Blue band on the left with a NATIONAL FLAG instead of EU stars",
+          meansWhat: "Non-EU Europe copying the EU layout.",
+          where: ["Turkey", "Serbia", "North Macedonia", "Moldova", "Ukraine", "Montenegro"],
+          note: "Turkey shows a small Turkish flag over TR; Ukraine's band is blue over yellow; Moldova's band is wider than standard with the Moldovan tricolour over MD."
+        },
+        {
+          value: "Blue bands on BOTH the left and right edges",
+          meansWhat: "A two-country shortlist, and a very visible one.",
+          where: ["Italy", "Albania"],
+          note: "Italy's front plate is noticeably shorter than the rear. Albania also issues a variant with a RED band on the left, which is unique in Europe."
+        },
+        {
+          value: "Red band on the left of the plate",
+          meansWhat: "Albania — no other European country puts red there.",
+          where: ["Albania"],
+          note: "Worth memorising outright; it turns a hard Balkan round into a one-second answer."
+        },
+        {
+          value: "Coat of arms or badge sitting BETWEEN the character groups",
+          meansWhat: "Narrows to a handful of countries, each with a different emblem.",
+          where: ["Croatia", "Serbia", "Hungary", "North Macedonia", "Montenegro"],
+          note: "Croatia: red-and-white chequerboard. Serbia: cross shield. Hungary: national arms (format since 2022). North Macedonia: small red-and-yellow badge. Montenegro: arms inside a red circle on the blue band."
+        },
+        {
+          value: "Long white plate with NO coloured band and no stars",
+          meansWhat: "Mostly Russia, where the flag sits at the right-hand end above RUS.",
+          where: ["Russia", "Bosnia and Herzegovina", "Greece (older issues)", "Croatia (pre-2016 issues)"],
+          note: "Bosnia's plate is deliberately symbol-free — see the Bosnia entry."
+        },
+        {
+          value: "Bulgaria: BG euroband, format letter(s) + four digits + two letters",
+          meansWhat: "Only twelve letters are ever used — А В Е К М Н О Р С Т У Х — because those read identically in Cyrillic and Latin.",
+          where: ["Bulgaria"],
+          note: "The province code opens the plate: С / СА / СВ Sofia city, В Varna, А Burgas, РВ Plovdiv, ВТ Veliko Tarnovo, Н Shumen, Т Targovishte, СС Silistra, РР Razgrad. The letter О is drawn egg-shaped while the digit zero is a plain oval."
+        },
+        {
+          value: "Greece: letters restricted to shapes shared by Greek and Latin",
+          meansWhat: "Only Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ appear, in the pattern three letters, dash, four digits.",
+          where: ["Greece"],
+          note: "Greek taxis carry YELLOW plates with red letters — a very visible island and city clue."
+        },
+        {
+          value: "Bosnia and Herzegovina: white plate, no emblem, letters only from A E O J K M T",
+          meansWhat: "The design deliberately avoids anything that could identify a driver's region or ethnicity; format is like A12-B-345.",
+          where: ["Bosnia and Herzegovina"],
+          note: "A plate with no national symbolism at all in the Balkans is close to conclusive."
+        },
+        {
+          value: "Coloured plates by vehicle class",
+          meansWhat: "Colour deviations are usually taxis, agriculture, electric vehicles or trade plates.",
+          where: ["Greece", "Hungary", "Bulgaria", "Serbia", "Poland", "Netherlands", "Luxembourg", "United Kingdom"],
+          note: "Yellow taxi plates in Greece and Hungary; green plates for farm vehicles in Serbia and for electric cars in Hungary and Poland. Netherlands runs yellow plates for everything; UK is white front, yellow rear."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "bollards",
+      name: "Bollards (delineator posts)",
+      icon: "🚧",
+      why: "The strongest single European clue after script. Delineator posts are built to a national standard and repeat every 30–50 metres along rural roads, so on a country road you will usually get several. Shape plus reflector colour is close to unique per country.",
+      how: "Note four things in order: (1) the outline from the front — flat rectangle, wedge, rounded, or triangular in plan; (2) whether the top is capped black; (3) the colour of the reflector facing you — red, orange, white or grey; (4) whether that reflector sits on a black patch, a band, or a stripe that wraps all the way round. Then check the BACK of the next post along, since front and rear reflectors usually differ.",
+      clues: [
+        {
+          value: "Red reflector on the right of the road, white reflector on the left",
+          meansWhat: "The most common European convention — sets the region, not the country.",
+          where: ["Austria", "Hungary", "Slovenia", "Croatia", "Greece", "Romania", "Bulgaria", "Turkey", "Slovakia", "Netherlands", "Russia", "Belarus"],
+          note: "Because this is shared so widely, the SHAPE is what actually identifies the country."
+        },
+        {
+          value: "Rectangular reflector on the right and two smaller round reflectors on the back",
+          meansWhat: "A distinct northern and central European family.",
+          where: ["Germany", "Poland", "Czechia", "Italy", "Portugal", "Sweden", "Norway", "Finland", "Estonia", "Latvia", "Switzerland", "Luxembourg", "Ukraine"],
+          note: "Look for the two round dots on the reverse of the post you have already passed."
+        },
+        {
+          value: "Orange or amber double reflector on the front, single white on the back",
+          meansWhat: "Czechia and Slovakia. Orange on a bollard is rare enough in Europe to be a strong call.",
+          where: ["Czechia", "Slovakia"],
+          note: "Newer Slovak posts have switched to a red front reflector resembling Hungary's, so orange proves Czechia or older Slovakia rather than separating the two."
+        },
+        {
+          value: "Red stripe that wraps all the way around the post",
+          meansWhat: "Poland. Often carries a printed number as well.",
+          where: ["Poland"],
+          note: "The wraparound band is visible from any angle, which makes this unusually forgiving."
+        },
+        {
+          value: "Triangular in plan, white with a BLACK cap, red reflector front and white back",
+          meansWhat: "Italy and Albania use effectively the same post.",
+          where: ["Italy", "Albania"],
+          note: "Separate them with the plate (Albania's red left band) or the language on any sign."
+        },
+        {
+          value: "White with a black rectangle patch, red or white reflector, sharply triangular in plan",
+          meansWhat: "Croatia.",
+          where: ["Croatia"],
+          note: "Sharper-edged than the similar Hungarian and Lithuanian posts."
+        },
+        {
+          value: "Wedge-shaped, black-and-white body, red reflector front and white back",
+          meansWhat: "Hungary.",
+          where: ["Hungary"],
+          note: "The wedge profile means the post looks quite different head-on than from the side — check both."
+        },
+        {
+          value: "Wedge-shaped with almost square reflectors, red on the front and white on the back",
+          meansWhat: "Greece.",
+          where: ["Greece"],
+          note: "The near-square reflector shape is the tell, more than the wedge itself."
+        },
+        {
+          value: "Plain white rectangular post, thin when seen from the side, single red reflector front",
+          meansWhat: "Turkey.",
+          where: ["Turkey"],
+          note: "A rare yellow-bodied variant appears in high-snowfall regions of the east."
+        },
+        {
+          value: "White post with a black top, bright red front reflector and white rear",
+          meansWhat: "Slovenia and Montenegro both use this pattern.",
+          where: ["Slovenia", "Montenegro"],
+          note: "Separate them with the guardrail: Slovenia is A-profile only, Montenegro mixes A and B and is usually rusty."
+        },
+        {
+          value: "Flat post with the reflector set OFF-CENTRE, almost no depth from the side",
+          meansWhat: "Serbia.",
+          where: ["Serbia"],
+          note: "The off-centre placement is odd enough that it reads even in a soft photo."
+        },
+        {
+          value: "Thin white post with a short red vertical strip near the top",
+          meansWhat: "Romania — but they are uncommon, so absence proves nothing.",
+          where: ["Romania"],
+          note: "Fall back on Romanian road-line rhythm and holey poles instead."
+        },
+        {
+          value: "Two coexisting types: a thin rounded post and a wedge post, white, reflectors on a black patch",
+          meansWhat: "North Macedonia.",
+          where: ["North Macedonia"],
+          note: "Confirm with the yellow-filled warning signs, which are much easier to see."
+        },
+        {
+          value: "Bollards essentially absent, and generic when present",
+          meansWhat: "Bulgaria. This is a negative clue worth knowing: do NOT try to identify Bulgaria from a bollard.",
+          where: ["Bulgaria"],
+          note: "Bulgarian posts are plain white with red and white reflectors and carry no national character. Use poles, script and road quality instead."
+        },
+        {
+          value: "White body with grey reflectors on both sides",
+          meansWhat: "Spain's national standard, with heavy regional variation on top.",
+          where: ["Spain"],
+          note: "Grey rather than red or white reflectors is unusual in Europe and worth memorising."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "utility-poles",
+      name: "Utility and electricity poles",
+      icon: "⚡",
+      why: "Distribution poles are cast to national designs, they line every road, and they stick up above rooftops and hedges — so they survive photos where nothing else is legible.",
+      how: "Two questions. First the BODY: round concrete, square concrete, concrete with holes cast through it, wood, or steel lattice? Second the TOP: how many insulators, and what holds them — upward-facing hooks, straight metal bars, a trident, a harp-like frame? Then look for extras: numbered plates, warning stickers, diagonal braces, and whether poles come singly or in pairs.",
+      clues: [
+        {
+          value: "Round concrete pole with three large insulators on UPWARD-FACING HOOKS, staggered rather than in a line",
+          meansWhat: "Bulgaria. This is the country's most reliable infrastructure clue.",
+          where: ["Bulgaria"],
+          note: "Learn the silhouette of the hooks — it reads at a distance and separates Bulgaria from Romania and Serbia cleanly."
+        },
+        {
+          value: "Concrete pole with holes cast through it, the holes running ALL THE WAY DOWN to the ground",
+          meansWhat: "Romania and Hungary.",
+          where: ["Romania", "Hungary"],
+          note: "Romania's openings tend to be wide and tall; Hungary's are relatively thin. Both differ from Poland, where the holes stop before the base."
+        },
+        {
+          value: "Holey concrete pole where the holes STOP partway down, sometimes doubled or in an A-frame",
+          meansWhat: "Poland.",
+          where: ["Poland"],
+          note: "The solid lower section is the discriminator against Romania and Hungary."
+        },
+        {
+          value: "Square-section concrete poles",
+          meansWhat: "Ukraine.",
+          where: ["Ukraine"],
+          note: "Often with a diagonal support beam, or a wooden pole strapped to a concrete stub at the base."
+        },
+        {
+          value: "Wide round concrete poles frequently mounted in PAIRS, with short metal bars carrying the insulators",
+          meansWhat: "Czechia and Slovakia.",
+          where: ["Czechia", "Slovakia"],
+          note: "Slovak tops sometimes add a triangular brace or a trident shape."
+        },
+        {
+          value: "Round concrete pole with a concrete TRIDENT top",
+          meansWhat: "Italy.",
+          where: ["Italy"],
+          note: "Round concrete poles are themselves uncommon around the Mediterranean, which makes this doubly useful."
+        },
+        {
+          value: "Tall dark-brown wooden poles with a harp-shaped metal frame and about five vertical insulators",
+          meansWhat: "Greece.",
+          where: ["Greece"],
+          note: "The unusual height and the dark stain are visible before the frame is."
+        },
+        {
+          value: "Steel lattice or mesh poles",
+          meansWhat: "Turkey uses these on an enormous scale.",
+          where: ["Turkey"],
+          note: "In the European part of Turkey outside Istanbul, poles often carry a small plate with a six-digit code under a yellow electrical warning sign."
+        },
+        {
+          value: "Cylindrical concrete or wooden poles with alternating hooks on the wooden ones",
+          meansWhat: "Croatia.",
+          where: ["Croatia", "Latvia"],
+          note: "Similar enough to Latvia's that you should confirm with the plate or language."
+        },
+        {
+          value: "Plain round concrete or wooden poles with no distinguishing top",
+          meansWhat: "A non-clue that itself has value in the Balkans.",
+          where: ["Serbia", "Montenegro"],
+          note: "If the poles tell you nothing in a Balkan photo, switch immediately to script and guardrail profile."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "road-signs",
+      name: "Road signs — shape, colour, font",
+      icon: "🛑",
+      why: "Sign design is set nationally: background colour, border thickness, arrow shape, the number of stripes drawn on a pedestrian symbol, even the colour of the sign's back. Two neighbours that share a language usually differ here.",
+      how: "Check five things: the background of the WARNING triangle (white or yellow) and how thick its red border is; the colour and shape of DIRECTION signs; the design of CHEVRONS on bends; the drawing style of the PEDESTRIAN symbol; and the BACK of any sign you can see edge-on, plus the number and pattern of bolts.",
+      clues: [
+        {
+          value: "Warning triangle: white background, red border",
+          meansWhat: "The majority European style.",
+          where: ["Bulgaria", "Romania", "Serbia", "Croatia", "Hungary", "Slovenia", "Czechia", "Slovakia", "Italy", "Turkey", "Spain", "Germany"],
+          note: "Use it to rule OUT the yellow-background countries."
+        },
+        {
+          value: "Warning triangle: yellow background",
+          meansWhat: "A short list, and a genuinely fast identification.",
+          where: ["Poland", "Greece", "North Macedonia", "Sweden", "Finland", "Norway", "Iceland"],
+          note: "Poland pairs the yellow field with an unusually THIN red border. Greece's border is normal thickness. North Macedonia fills the whole triangle yellow."
+        },
+        {
+          value: "Direction signs: blue, arrow-shaped, two scripts stacked",
+          meansWhat: "Bulgaria — Cyrillic on top, Latin transliteration beneath. Motorway direction signage is green.",
+          where: ["Bulgaria"],
+          note: "Romania's blue arrows carry a white border and Latin only; Greece's blue arrows put Greek in yellow above white Latin."
+        },
+        {
+          value: "Direction signs: yellow with a black border",
+          meansWhat: "Croatia and Slovenia.",
+          where: ["Croatia", "Slovenia"],
+          note: "Croatian arrow tips are pencil-shaped. North Macedonia also uses yellow direction signs, but with two scripts."
+        },
+        {
+          value: "Direction signs: yellow with BOTH Latin and Cyrillic text",
+          meansWhat: "North Macedonia.",
+          where: ["North Macedonia"],
+          note: "Bi-script yellow signs are effectively a Macedonian signature."
+        },
+        {
+          value: "Chevron boards on bends — the colour combination is national",
+          meansWhat: "One of the most efficient clues in Europe because chevrons appear on every winding road.",
+          where: ["Bulgaria", "Romania", "Serbia", "Greece", "Croatia", "Hungary", "Poland", "Czechia", "Slovakia", "Slovenia", "Italy", "Albania", "Turkey", "Montenegro"],
+          note: "Red on white: Bulgaria, Turkey. Red on white with a YELLOW frame: Romania. White arrow on RED board: Hungary. White board with red arrows: Poland, Czechia, Slovakia, Slovenia. Red arrow on yellow or white: Croatia. BLACK arrow on white: Serbia. WHITE arrow on BLACK: Greece, Italy, Albania. Black-on-white or red-on-yellow: Montenegro."
+        },
+        {
+          value: "Pedestrian crossing symbol — count the stripes and dress the figure",
+          meansWhat: "A small drawing with big discriminating power.",
+          where: ["Bulgaria", "Croatia", "Slovenia", "Ukraine", "Poland"],
+          note: "Bulgaria: four stripes and the walking figure wears a HAT. Croatia: five stripes, figure wears a belt. Slovenia: five stripes, no belt. Ukraine: three stripes. Poland: a single horizontal line instead of stripes."
+        },
+        {
+          value: "Stop sign wording",
+          meansWhat: "Almost all of Europe writes STOP in Latin; the exceptions are memorable.",
+          where: ["Turkey", "Serbia", "Russia", "Ukraine"],
+          note: "Turkey writes DUR. Serbia, Russia and Ukraine sometimes write СТОП in Cyrillic. Bulgaria uses STOP in Latin despite writing Cyrillic everywhere else — a useful thing to know so you do not mis-rule Bulgaria out."
+        },
+        {
+          value: "Backs of signs painted black or dark grey",
+          meansWhat: "Italy and Albania.",
+          where: ["Italy", "Albania"],
+          note: "Most countries leave the back bare galvanised grey; a deliberately dark back is unusual."
+        },
+        {
+          value: "Signposts abnormally tall, with four bolts in a rectangle",
+          meansWhat: "Hungary.",
+          where: ["Hungary"],
+          note: "Combine with green kilometre markers and the ÚT / UTCA street wording."
+        },
+        {
+          value: "Town entry sign layout",
+          meansWhat: "How a country announces a settlement is standardised and easy to read.",
+          where: ["Bulgaria", "Romania", "Greece", "Ukraine"],
+          note: "Bulgaria: white board with two lines of text (Cyrillic then Latin). Romania: a yellow speed-limit-plus-skyline sign above a white name board. Greece: white with thick horizontal blue stripes. Ukraine: plain white."
+        },
+        {
+          value: "Sign typeface",
+          meansWhat: "Balkan road signs share the SNV typeface, which is why signs from Bulgaria, Romania, Serbia and North Macedonia look related.",
+          where: ["Bulgaria", "Romania", "Serbia", "North Macedonia"],
+          note: "Because the font is shared, do not use letterforms alone to separate these four — use the script and the sign colours."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "writing-system",
+      name: "Writing system and diacritics",
+      icon: "🔤",
+      why: "Script is the fastest cut available after driving side. Any readable text — a shop fascia, a van door, a fly-poster, a street plate — narrows the world to a handful of countries in about one second.",
+      how: "Classify the script family first: Latin, Cyrillic, Greek, Arabic, or something else. Then hunt for accent marks and unusual letters, because within Latin it is the diacritics that name the country. Text is everywhere in a street photo — look at bus stops, dumpsters, campaign posters, price boards, delivery vans, and the small print on utility boxes.",
+      clues: [
+        {
+          value: "Greek alphabet — Ω Δ Θ Λ Ξ Π Σ Φ Ψ",
+          meansWhat: "Greece or Cyprus, and nothing else.",
+          where: ["Greece", "Cyprus"],
+          note: "Cyprus drives on the LEFT, so the driving side splits the pair instantly."
+        },
+        {
+          value: "Latin with Ă ă, Â â, Î î, Ș ș, Ț ț",
+          meansWhat: "Romanian.",
+          where: ["Romania", "Moldova"],
+          note: "The comma-below letters Ș and Ț are the giveaway. Moldova is Romanian in Latin script with post-Soviet infrastructure and MD plates."
+        },
+        {
+          value: "Latin with Ő ő and Ű ű, plus long compound words dense with accents",
+          meansWhat: "Hungarian.",
+          where: ["Hungary", "Serbia (Vojvodina, bilingual)", "Romania (Transylvania, bilingual)", "Slovakia (south)"],
+          note: "The DOUBLE ACUTE on Ő and Ű exists essentially nowhere else. Street names end in utca or út."
+        },
+        {
+          value: "Latin with Č, Ć, Đ, Š, Ž",
+          meansWhat: "The Serbo-Croatian continuum in Latin script.",
+          where: ["Croatia", "Bosnia and Herzegovina", "Serbia", "Montenegro"],
+          note: "Ć and Đ are absent from Slovene and Czech, so their presence pulls you out of Slovenia and Czechia."
+        },
+        {
+          value: "Latin with Č, Š, Ž but NO Ć or Đ",
+          meansWhat: "Slovene.",
+          where: ["Slovenia"],
+          note: "Street names contain ulica; house numbers are usually red on white."
+        },
+        {
+          value: "Latin with Ř, Ě, Ů",
+          meansWhat: "Czech — these three do not exist in Slovak.",
+          where: ["Czechia"],
+          note: "The single best Czech-versus-Slovak test on a sign."
+        },
+        {
+          value: "Latin with Ľ, Ô, Ä, Ŕ, Ĺ",
+          meansWhat: "Slovak.",
+          where: ["Slovakia"],
+          note: "Slovak uses ulica for street; Czech does not."
+        },
+        {
+          value: "Latin with Ł, Ą, Ę, Ś, Ź, Ż",
+          meansWhat: "Polish.",
+          where: ["Poland"],
+          note: "The barred Ł is visible at a distance; consonant clusters like SZCZ and heavy use of W are a secondary cue."
+        },
+        {
+          value: "Latin with Ë ë and Ç ç, and the word rruga",
+          meansWhat: "Albanian.",
+          where: ["Albania", "Kosovo", "North Macedonia (west)"],
+          note: "Double letters (rr, ll, xh, zh) are characteristic."
+        },
+        {
+          value: "Latin with Ç, Ş, Ğ, Ö, Ü and a DOTLESS ı beside a DOTTED İ",
+          meansWhat: "Turkish.",
+          where: ["Turkey", "Cyprus (north)"],
+          note: "A capital İ with a dot on it is unique enough to end the round on its own."
+        },
+        {
+          value: "Cyrillic",
+          meansWhat: "Six realistic countries in this region, and they are separated by only a handful of letters.",
+          where: ["Bulgaria", "Serbia", "North Macedonia", "Russia", "Ukraine", "Belarus"],
+          note: "Go to the Cyrillic tells category — do not guess Russia by default, which is the classic beginner mistake."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "cyrillic-tells",
+      name: "Telling the Cyrillic countries apart",
+      icon: "🔡",
+      why: "Six countries near home write in Cyrillic, and a beginner will throw away whole rounds by guessing Russia for Bulgaria. The alphabets differ by only a few letters — but those letters are everywhere once you know to look for them. This is the highest-value skill on this list for anyone working with Balkan imagery.",
+      how: "Scan any Cyrillic text for EXCLUSIVE letters first, because one of them ends the question. Then look at word endings, then at the abbreviation used before street names, then at the company-form suffix after business names on shopfronts. Read the small text on vans and utility boxes, not just big signs.",
+      clues: [
+        {
+          value: "Ы, Э or Ё appears",
+          meansWhat: "Russian. None of these exist in Bulgarian, Ukrainian, Serbian or Macedonian.",
+          where: ["Russia", "Kazakhstan", "Kyrgyzstan"],
+          note: "Ы is common in ordinary Russian words, so it shows up fast in any block of text."
+        },
+        {
+          value: "І, Ї, Є or Ґ appears",
+          meansWhat: "Ukrainian.",
+          where: ["Ukraine"],
+          note: "Ukrainian street abbreviation is вул. (not ул.), and a city is prefixed м. rather than Russian г."
+        },
+        {
+          value: "Ў appears",
+          meansWhat: "Belarusian.",
+          where: ["Belarus"],
+          note: "Belarusian also uses і like Ukrainian, so check for Ў specifically."
+        },
+        {
+          value: "Љ, Њ, Џ or Ј appears",
+          meansWhat: "Serbian or Macedonian — never Bulgarian or Russian.",
+          where: ["Serbia", "North Macedonia", "Montenegro"],
+          note: "These four letters are the shared South-Slavic Cyrillic set. Next, look for the pair that splits them."
+        },
+        {
+          value: "Ђ or Ћ appears",
+          meansWhat: "Serbian.",
+          where: ["Serbia", "Montenegro", "Bosnia and Herzegovina (Republika Srpska)"],
+          note: "Serbia mixes Cyrillic and Latin freely on the same street, so seeing Latin does not rule Serbia out."
+        },
+        {
+          value: "Ѓ, Ќ or Ѕ appears",
+          meansWhat: "Macedonian.",
+          where: ["North Macedonia"],
+          note: "Macedonian lacks Ъ, Я, Ю, Й and Щ entirely — so any of those in a Balkan Cyrillic photo pushes you to Bulgaria."
+        },
+        {
+          value: "Ъ used as an ordinary VOWEL inside words — България, Търново, ъгъл — with no Ы, Э or І anywhere",
+          meansWhat: "Bulgarian. This combination belongs to no other language.",
+          where: ["Bulgaria"],
+          note: "In Russian, ъ is a rare hard sign that never starts a word and never carries a vowel sound. In Bulgarian it is a normal vowel and appears constantly."
+        },
+        {
+          value: "Щ and Я present, but no Ы, Э, І, Ї, Љ, Њ or Џ",
+          meansWhat: "Bulgarian, by elimination.",
+          where: ["Bulgaria"],
+          note: "Щ is very common in Bulgarian (Търговище, помощ, още). Ukrainian also has Щ and Я, so confirm the absence of І and Ї."
+        },
+        {
+          value: "The definite article glued onto the END of a word — endings -ът, -ят, -та, -то, -те",
+          meansWhat: "Bulgarian (and Macedonian, which does the same but with different letters available).",
+          where: ["Bulgaria", "North Macedonia"],
+          note: "Look at shop and institution names: АПТЕКАТА, ЦЕНТЪРЪТ, ОБЩИНАТА. No East Slavic language does this, so it is a clean Bulgaria-versus-Russia test."
+        },
+        {
+          value: "Company-form suffix after a business name",
+          meansWhat: "Every country has its own legal-entity abbreviation, and it is painted on half the shopfronts and vans in the country.",
+          where: ["Bulgaria", "Russia", "Ukraine", "Serbia", "North Macedonia"],
+          note: "Bulgaria: ЕООД, ООД, АД, ЕТ. Russia: ООО, ЗАО, ИП. Ukraine: ТОВ, ФОП. Serbia: ДОО or d.o.o. North Macedonia: ДООЕЛ. This is one of the most under-used clues available."
+        },
+        {
+          value: "Address abbreviations",
+          meansWhat: "How an address is written down is national.",
+          where: ["Bulgaria", "Russia", "Ukraine", "Serbia"],
+          note: "Bulgaria: ул. (улица), бул. (булевард), пл. (площад), гр. (град), с. (село), ж.к. (жилищен комплекс), кв. (квартал), общ. (община), обл. (област). The housing-estate prefix ж.к. is distinctly Bulgarian. Ukraine uses вул.; Russia uses ул. and пр-т."
+        },
+        {
+          value: "Common Bulgarian shop words",
+          meansWhat: "Vocabulary you can read off a fascia without knowing the language.",
+          where: ["Bulgaria"],
+          note: "АПТЕКА (pharmacy), ХРАНИТЕЛНИ СТОКИ (groceries), МАГАЗИН, ФУРНА (bakery), КАФЕ, БИРА, АВТОЧАСТИ, АВТОСЕРВИЗ, ПОЩА, ЗАЛОЖНА КЪЩА (pawn shop), БЪРЗИ КРЕДИТИ, КВАРТАЛЕН МАГАЗИН."
+        },
+        {
+          value: "Bulgarian upright-cursive letterforms in display fonts",
+          meansWhat: "In some Bulgarian typefaces the letters в, г, д, и, п, т are drawn in the Bulgarian tradition and look closer to Latin ϐ, r, g, u, n, m than to their Russian shapes.",
+          where: ["Bulgaria"],
+          note: "Font-dependent — many Bulgarian signs use ordinary Russian-style forms, so treat this as a bonus confirmation and never as proof."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "architecture",
+      name: "Architecture and roofing",
+      icon: "🏠",
+      why: "Building materials, roof pitch, tile colour and balcony habits are strongly regional and survive photos with no text and no road at all. In the ex-socialist bloc, the housing stock is a dated historical record you can read.",
+      how: "Read the roof first — pitch, material and colour. Then the walls: bare brick, painted stucco, stone, or prefabricated concrete panels with visible joints. Then the details that are cheap and therefore local: shutter type, balcony glazing, fence material, whether there is a walled courtyard, and whether the top floor is unfinished with rebar sticking up.",
+      clues: [
+        {
+          value: "Prefabricated concrete PANEL blocks with a visible grid of panel joints",
+          meansWhat: "Socialist-era mass housing across the whole eastern bloc — in Bulgaria these are панелки.",
+          where: ["Bulgaria", "Romania", "Serbia", "North Macedonia", "Ukraine", "Russia", "Poland", "Czechia", "Slovakia", "Hungary"],
+          note: "Condition separates them: Czech and Polish blocks are typically renovated in bright colours; Bulgarian and Ukrainian ones more often stay grey with mismatched individually glazed-in balconies."
+        },
+        {
+          value: "Yellow or beige brick houses with orange clay tile roofs, mortar-patched",
+          meansWhat: "Bulgarian villages and small towns.",
+          where: ["Bulgaria"],
+          note: "Roofs often look uneven and repaired in patches; walls frequently half-rendered."
+        },
+        {
+          value: "Pastel-painted stone or stucco single-family houses, orange tile or grey metal roofs",
+          meansWhat: "Romania.",
+          where: ["Romania"],
+          note: "Romanian villages run to stronger pastel colours than Bulgarian ones."
+        },
+        {
+          value: "Grey metal roofs with DIAMOND-shaped tiles or shingles",
+          meansWhat: "Slovakia and eastern Czechia especially.",
+          where: ["Slovakia", "Czechia", "Romania"],
+          note: "In Slovakia houses often present the short side to the road with a hip-ended roof."
+        },
+        {
+          value: "Whitewashed stone with blue doors, shutters and railings",
+          meansWhat: "Greek islands and coastal Greece.",
+          where: ["Greece"],
+          note: "Mainland Greek towns are far less picturesque — do not expect this everywhere in Greece."
+        },
+        {
+          value: "Bare unrendered red brick with concrete columns and rebar left sticking out of the top floor",
+          meansWhat: "Perpetually unfinished construction, funded floor by floor.",
+          where: ["Albania", "Kosovo", "Turkey", "North Macedonia", "Bulgaria (occasional)"],
+          note: "In Albania it is combined with pastel paint and lots of balconies; in Turkey with blocky square apartment slabs."
+        },
+        {
+          value: "Cylindrical water tanks and solar water heaters on the roof",
+          meansWhat: "Warm, sunny countries with unreliable mains pressure.",
+          where: ["Albania", "Greece", "Turkey", "Cyprus", "Israel"],
+          note: "A rooftop forest of white cylinders is one of the fastest eastern-Mediterranean calls."
+        },
+        {
+          value: "Terracotta roofs and wooden shutters split in two, opening sideways",
+          meansWhat: "Italy.",
+          where: ["Italy"],
+          note: "Pastel stone facades with green or brown shutters; combine with black sign backs."
+        },
+        {
+          value: "Light walls with dark wooden detailing, half-hipped roofs, tall slatted hay racks",
+          meansWhat: "Slovenia — the hay rack is called a kozolec and is nearly unique.",
+          where: ["Slovenia"],
+          note: "A free-standing wooden frame with regular gaps in a field is a strong Slovenia call."
+        },
+        {
+          value: "Exposed red brick inland, beige stone with green shutters on the coast",
+          meansWhat: "Croatia's two very different faces.",
+          where: ["Croatia"],
+          note: "The Adriatic coast adds bare pale limestone hills behind the houses."
+        },
+        {
+          value: "19th-century Neo-Baroque and Neo-Renaissance facades in a Danube town centre",
+          meansWhat: "A Danube town in Bulgaria — its centre was built in a Central European idiom and is unlike the rest of the country.",
+          where: ["Bulgaria"],
+          note: "Clue: if the Cyrillic is Bulgarian and the buildings look Viennese, think of a Danube town before Sofia."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "vegetation-climate",
+      name: "Vegetation and climate zone",
+      icon: "🌿",
+      why: "Plants encode latitude, altitude and rainfall. Vegetation alone rarely names a country, but it reliably picks the right third of a continent, which stops you wasting the rest of your clues.",
+      how: "Look at leaf type (broadleaf, needle, evergreen leathery), ground and soil colour, whether hills are wooded or bare, what is planted in the fields, and what lines the road. Roadside tree planting is often deliberate and regional.",
+      clues: [
+        {
+          value: "Olive groves, Aleppo pine, cypress, dry scrub and pale or red rocky soil",
+          meansWhat: "Mediterranean climate.",
+          where: ["Greece", "Italy (south)", "Spain", "Turkey (coast)", "Albania", "Croatia (Adriatic)", "Montenegro (coast)"],
+          note: "Red dirt is especially characteristic of Greece."
+        },
+        {
+          value: "Mixed deciduous forest — oak, hornbeam, beech — with wheat and sunflower plains",
+          meansWhat: "Continental south-east Europe.",
+          where: ["Bulgaria", "Romania", "Serbia", "Hungary", "North Macedonia (north)"],
+          note: "This is what most of Bulgaria looks like away from the mountains and the coast."
+        },
+        {
+          value: "Enormous sunflower fields",
+          meansWhat: "The Danubian and Pontic grain belt.",
+          where: ["Bulgaria", "Romania", "Ukraine", "Hungary", "Serbia", "France (centre-west)"],
+          note: "In Bulgaria they dominate the Danube plain and Dobrudzha in the north-east."
+        },
+        {
+          value: "Rows of poplars planted as field windbreaks along straight roads",
+          meansWhat: "Planned agricultural landscapes of the socialist era.",
+          where: ["Bulgaria", "Romania", "Hungary", "Ukraine"],
+          note: "Very common on the flat Bulgarian north, less so in the mountainous south-west."
+        },
+        {
+          value: "Rose and lavender fields in a broad valley between two mountain ranges",
+          meansWhat: "The Rose Valley around Kazanlak and Karlovo, Bulgaria.",
+          where: ["Bulgaria"],
+          note: "Bulgaria is one of the world's largest producers of rose oil and lavender; the fields are regionally specific, not nationwide."
+        },
+        {
+          value: "Dry pale grass, sparse scattered trees, low bare hills",
+          meansWhat: "Hot dry inland basins.",
+          where: ["North Macedonia", "Greece (interior)", "Turkey (central Anatolia)", "Spain (interior)"],
+          note: "North Macedonia in particular reads as dry grassland with small hills."
+        },
+        {
+          value: "Birch trees, mixed with spruce and pine",
+          meansWhat: "The northern and East European forest belt.",
+          where: ["Russia", "Belarus", "Poland (north)", "Estonia", "Latvia", "Lithuania", "Finland"],
+          note: "White-barked birch stands are a fast way to rule OUT the Balkans."
+        },
+        {
+          value: "Dense dark conifer forest on steep slopes above roughly 1200 m",
+          meansWhat: "The high Balkan ranges.",
+          where: ["Bulgaria", "Romania", "Serbia", "Montenegro", "Bosnia and Herzegovina"],
+          note: "In Bulgaria this is Rila, Pirin and the Rhodopes in the south-west and south."
+        },
+        {
+          value: "Terraced vineyards on hillsides",
+          meansWhat: "Wine regions, widespread and therefore weak alone.",
+          where: ["Bulgaria", "Romania", "Serbia", "Hungary", "Greece", "Italy", "Spain", "Croatia"],
+          note: "Use it as a supporting detail, not a decision."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "domains-phones",
+      name: "Domains and phone numbers on signage",
+      icon: "🌐",
+      why: "A web address or phone number painted on a van, awning or billboard is effectively a written country code, and it is often the only legible text in an otherwise anonymous street.",
+      how: "Read the last two letters of any URL, and the leading digits and grouping of any phone number. Hunt on delivery vans, shop awnings, estate-agent boards, bus-stop advertising, skip hire and scaffolding, and stickers on dumpsters and utility cabinets.",
+      clues: [
+        {
+          value: ".bg  /  +359  /  numbers written 08XX XXX XXX",
+          meansWhat: "Bulgaria.",
+          where: ["Bulgaria"],
+          note: "Bulgarian mobile numbers are usually printed as 087, 088, 089 followed by seven digits."
+        },
+        {
+          value: ".ro  /  +40  /  07XX XXX XXX",
+          meansWhat: "Romania.",
+          where: ["Romania"],
+          note: "All Romanian mobiles start 07."
+        },
+        {
+          value: ".rs  /  +381",
+          meansWhat: "Serbia.",
+          where: ["Serbia"],
+          note: "Older signage may still show .co.yu or .cs — historic and now a dating clue."
+        },
+        {
+          value: ".mk  /  +389",
+          meansWhat: "North Macedonia.",
+          where: ["North Macedonia"],
+          note: "Frequently paired with bi-script signage."
+        },
+        {
+          value: ".gr  /  +30  /  ten-digit numbers, mobiles start 69",
+          meansWhat: "Greece.",
+          where: ["Greece"],
+          note: "Greek numbers have no trunk prefix, so they are printed as a flat ten digits."
+        },
+        {
+          value: ".tr and .com.tr  /  +90  /  05XX XXX XX XX",
+          meansWhat: "Turkey.",
+          where: ["Turkey"],
+          note: "Turkish businesses very often print 0850 or 0212 / 0216 Istanbul area codes."
+        },
+        {
+          value: ".hr +385, .hu +36, .si +386, .al +355, .ba +387, .me +382",
+          meansWhat: "Croatia, Hungary, Slovenia, Albania, Bosnia and Herzegovina, Montenegro.",
+          where: ["Croatia", "Hungary", "Slovenia", "Albania", "Bosnia and Herzegovina", "Montenegro"],
+          note: "Learn these six together — they cover the western Balkans in one block."
+        },
+        {
+          value: ".pl +48, .cz +420, .sk +421, .ua +380, .ru +7, .md +373",
+          meansWhat: "Poland, Czechia, Slovakia, Ukraine, Russia, Moldova.",
+          where: ["Poland", "Czechia", "Slovakia", "Ukraine", "Russia", "Moldova"],
+          note: "+7 is shared by Russia and Kazakhstan."
+        },
+        {
+          value: ".it +39, .es +34",
+          meansWhat: "Italy, Spain.",
+          where: ["Italy", "Spain"],
+          note: "Italian landlines keep the leading 0 even with the country code, which is unusual."
+        },
+        {
+          value: "A vehicle-registration country sticker (oval white sticker) on the boot lid",
+          meansWhat: "BG, RO, SRB, MK, GR, TR, HR, H, PL, UA — the same codes as the plate bands.",
+          where: ["Europe"],
+          note: "Useful on older cars whose plates predate the euroband."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "sun-position",
+      name: "Sun position and hemisphere",
+      icon: "☀️",
+      why: "Shadows give you the hemisphere for free and a rough latitude on top of it, using nothing but geometry that is true everywhere. It is the one clue that cannot be faked by a local design choice.",
+      how: "Find a vertical object with a clean shadow — a pole, a bollard, a person. In the northern hemisphere the sun is in the SOUTHERN half of the sky around midday, so shadows point roughly north. In the southern hemisphere it is reversed. Then judge shadow LENGTH relative to object height: short shadow means high sun, so low latitude or midsummer.",
+      clues: [
+        {
+          value: "Midday shadows pointing north; the sun tracks across the southern sky",
+          meansWhat: "Northern hemisphere — including all of Europe.",
+          where: ["Europe", "North America", "Asia", "North Africa"],
+          note: "For our whole region this is always true, so treat it as a check rather than a clue."
+        },
+        {
+          value: "Midday shadows pointing south",
+          meansWhat: "Southern hemisphere.",
+          where: ["Australia", "New Zealand", "South Africa", "Argentina", "Chile", "Brazil (south)"],
+          note: "Combine with driving side to split the southern hemisphere in two immediately."
+        },
+        {
+          value: "Shadow noticeably LONGER than the object that casts it, in bright clear light",
+          meansWhat: "A low sun: either high latitude, winter, or early morning and late afternoon.",
+          where: ["Worldwide"],
+          note: "At Bulgaria's latitude, roughly 42–44°N, the midday sun sits about 23° above the horizon at midwinter and about 71° at midsummer — so winter shadows run more than twice the object's height, and summer shadows are stubby."
+        },
+        {
+          value: "Satellite dishes on a block of flats all pointing the same way",
+          meansWhat: "In Europe they aim south to south-east at the Astra and Hotbird positions, so a wall of dishes is a compass.",
+          where: ["Europe"],
+          note: "Practical and reliable: a facade covered in dishes is facing roughly south. In Bulgaria this is common on панелки."
+        },
+        {
+          value: "Rooftop solar panels and solar water heaters tilted toward one side",
+          meansWhat: "They face the equator — south in the northern hemisphere.",
+          where: ["Worldwide"],
+          note: "Steeply tilted panels imply a higher latitude; near-flat panels imply the tropics."
+        },
+        {
+          value: "Moss, staining and snow surviving on one face of walls and poles",
+          meansWhat: "The shaded, north-facing side in the northern hemisphere.",
+          where: ["Worldwide"],
+          note: "Weak on its own and easily misled by nearby buildings — use only to break a tie."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "vehicle-fleet",
+      name: "Vehicle fleet and common models",
+      icon: "🚙",
+      why: "The mix of makes, ages and colours on a street is an economic and historical signature. What matters is not the newest car but the OLDEST and the most repeated one.",
+      how: "Ignore the one interesting car. Count what repeats: the taxi livery, the delivery vans, the twenty-year-old hatchbacks. Also read the branding on commercial vehicles — a courier or supermarket logo is a national clue in itself.",
+      clues: [
+        {
+          value: "Dacia Logan, Sandero and Duster in large numbers",
+          meansWhat: "Romania first, then its neighbours.",
+          where: ["Romania", "Moldova", "Bulgaria", "Serbia"],
+          note: "Dacia is Romania's own marque; a street where every third car is a Dacia is almost certainly Romanian."
+        },
+        {
+          value: "Lada 2101–2107 (Zhiguli), Lada Niva, UAZ vans",
+          meansWhat: "The post-Soviet fleet.",
+          where: ["Russia", "Ukraine", "Belarus", "Moldova", "Bulgaria (villages, surviving examples)"],
+          note: "In Bulgaria a Lada is an old survivor, not the norm — in rural Russia it is the norm."
+        },
+        {
+          value: "Zastava Yugo and Zastava 101",
+          meansWhat: "Ex-Yugoslav countries.",
+          where: ["Serbia", "Bosnia and Herzegovina", "North Macedonia", "Montenegro"],
+          note: "Increasingly rare, but almost conclusive when present."
+        },
+        {
+          value: "Tofaş Şahin and Doğan, and an overwhelming Renault and Fiat majority",
+          meansWhat: "Turkey, which built these locally for decades.",
+          where: ["Turkey"],
+          note: "Yellow taxis, usually a Fiat or Renault saloon, are everywhere in Turkish cities."
+        },
+        {
+          value: "Fiat Panda, Punto and 500 as the default small car",
+          meansWhat: "Italy.",
+          where: ["Italy"],
+          note: "Combine with narrow streets, scooters and black-backed signs."
+        },
+        {
+          value: "Ageing western second-hand imports — 1990s and 2000s VW Golf and Passat, Opel Astra and Vectra, Renault, Peugeot, Ford",
+          meansWhat: "Bulgaria's real fleet: an import-driven used-car market with a very old average age.",
+          where: ["Bulgaria", "Romania", "North Macedonia", "Albania"],
+          note: "Soft clue on its own; use it to support script and pole evidence rather than to open a guess."
+        },
+        {
+          value: "Yellow taxis with a chequered stripe",
+          meansWhat: "Bulgaria uses yellow taxis nationwide, as do Turkey and Hungary's capital.",
+          where: ["Bulgaria", "Turkey", "Hungary", "Greece (Athens)"],
+          note: "Athens taxis are yellow, but other Greek cities differ. Bulgarian taxis carry roof signs and a price list stuck to the rear side window."
+        },
+        {
+          value: "Mercedes W123, W124 and old diesel saloons in large numbers",
+          meansWhat: "Albania and parts of the western Balkans.",
+          where: ["Albania", "Kosovo"],
+          note: "Albania's Mercedes density is well beyond normal for the region."
+        },
+        {
+          value: "Right-hand-drive Japanese imports on right-hand-traffic roads",
+          meansWhat: "The Russian Far East and Siberia, Georgia and Kyrgyzstan.",
+          where: ["Russia", "Georgia", "Kyrgyzstan"],
+          note: "The proportion rises the further east you go in Russia."
+        },
+        {
+          value: "Horse-drawn carts sharing the road with cars",
+          meansWhat: "Rural Romania above all, and rural Bulgaria and Moldova.",
+          where: ["Romania", "Bulgaria", "Moldova"],
+          note: "Romania is the strongest of the three."
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "road-surface-guardrails",
+      name: "Road surface and guardrails",
+      icon: "🛤️",
+      why: "Surfacing and crash-barrier profile are national procurement decisions. They are visible in every road photo, they do not depend on language, and they change abruptly at borders.",
+      how: "For the guardrail, look at its cross-section end-on: A-profile is a rounded, curved corrugation; B-profile is a squared box section. Then look at the post reflectors — shape and colour. For the surface, read the colour of the asphalt, the pattern of repairs, whether the road is concrete slabs with regular transverse joints, and whether the town streets are cobbled.",
+      clues: [
+        {
+          value: "A-profile guardrail — rounded, curved corrugation",
+          meansWhat: "Narrows the Balkans usefully.",
+          where: ["Slovenia", "North Macedonia", "Montenegro", "Turkey"],
+          note: "North Macedonia adds red reflectors on the rail."
+        },
+        {
+          value: "B-profile guardrail — squared box section",
+          meansWhat: "The other half of the Balkan split.",
+          where: ["Serbia", "Croatia", "Poland", "Turkey", "Montenegro"],
+          note: "Serbia uses B-profile almost exclusively, which makes it a clean Serbia-versus-Slovenia test. Poland's B-rails carry circular red reflectors."
+        },
+        {
+          value: "Both A and B profiles mixed on the same network",
+          meansWhat: "Montenegro and Turkey.",
+          where: ["Montenegro", "Turkey"],
+          note: "In Montenegro the rails are also frequently rusted through."
+        },
+        {
+          value: "Rusted, unpainted, visibly old guardrails",
+          meansWhat: "Lower-maintenance mountain networks.",
+          where: ["Montenegro", "Albania", "Bosnia and Herzegovina", "Bulgaria (mountain roads)"],
+          note: "Do not over-read this: rust exists everywhere, it is the CONSISTENCY of rust that matters."
+        },
+        {
+          value: "Guardrails, kerbs and tree trunks painted in black-and-white bands",
+          meansWhat: "The post-Soviet maintenance habit.",
+          where: ["Ukraine", "Russia", "Belarus", "Moldova", "Kazakhstan"],
+          note: "Very visible and very quick — a strong pull away from the Balkans."
+        },
+        {
+          value: "Asphalt riddled with cracks, patched squares and snaking black tar seams",
+          meansWhat: "Bulgaria above all, then Romania, Albania, Ukraine and Moldova.",
+          where: ["Bulgaria", "Romania", "Albania", "Ukraine", "Moldova"],
+          note: "Bulgaria pairs poor surface with unusually THIN road paint — that pair is close to a signature."
+        },
+        {
+          value: "Concrete slab roadway with regular transverse expansion joints",
+          meansWhat: "Older or permafrost-region construction.",
+          where: ["Russia (north)", "Ukraine", "Poland (older sections)", "Germany (older Autobahn)"],
+          note: "You hear it as much as see it — visually, look for the regular seams across the full width."
+        },
+        {
+          value: "Granite sett cobbles (паваж) on town centre streets",
+          meansWhat: "Bulgarian town centres, notably Plovdiv and old Sofia.",
+          where: ["Bulgaria", "Czechia", "Portugal", "Poland"],
+          note: "Combined with Bulgarian Cyrillic, cobbles push you to a town centre rather than a village."
+        },
+        {
+          value: "Concrete post-and-rail or chunky concrete block barriers on mountain roads",
+          meansWhat: "Older Balkan and post-Soviet mountain engineering.",
+          where: ["Bulgaria", "Serbia", "North Macedonia", "Georgia"],
+          note: "Weakly discriminating between those countries — use it only to confirm a mountain setting.",
+          unverified: true
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------------ */
+    {
+      id: "street-furniture",
+      name: "Street furniture — signs, numbers, markers, bins",
+      icon: "🗑️",
+      why: "Bins, hydrants, kilometre posts, street-name plates and house numbers are municipal or national standards. They are boring, which is exactly why nobody photoshops them and why they are consistent across a whole country.",
+      how: "Look at four small things: the colour and shape of the STREET-NAME plate, the colour of the HOUSE-NUMBER plate, the layout of the KILOMETRE marker beside the road, and the design of bins and bus shelters. All of these appear in ordinary residential photos where there is no road paint to read.",
+      clues: [
+        {
+          value: "Kilometre marker layout",
+          meansWhat: "Every country lays out the road number and the distance differently on the small roadside post.",
+          where: ["Hungary", "Slovenia", "Slovakia", "Czechia", "Spain"],
+          note: "Hungary: green markers along most roads. Slovenia: road number in a yellow rectangle top-left, distance below a dividing line. Slovakia: two sections split by a black horizontal line with the road number on top. Spain: border colour codes the road class — orange, green, yellow from largest to smallest."
+        },
+        {
+          value: "Bright red street-name signs",
+          meansWhat: "Czechia, where red plates are the commonest style.",
+          where: ["Czechia"],
+          note: "Blue and white variants exist too, usually with red or black text."
+        },
+        {
+          value: "Street-name signs with blue text and a thin red border",
+          meansWhat: "Slovakia.",
+          where: ["Slovakia"],
+          note: "Slovak street names contain ulica, which never appears in Czech."
+        },
+        {
+          value: "Red house-number plates with white numerals",
+          meansWhat: "Slovenia — except Ljubljana, which uses green.",
+          where: ["Slovenia"],
+          note: "A very quick confirmation once you already suspect Slovenia."
+        },
+        {
+          value: "Blue fire hydrants with a diagonal protrusion",
+          meansWhat: "Croatia.",
+          where: ["Croatia"],
+          note: "Hydrant colour is standardised nationally in many countries and is badly under-used as a clue."
+        },
+        {
+          value: "Street names ending in utca (small street) or út (larger road)",
+          meansWhat: "Hungarian-speaking areas.",
+          where: ["Hungary", "Serbia (Vojvodina)", "Romania (Transylvania)", "Slovakia (south)"],
+          note: "Bulgarian equivalents are улица and булевард; Slovene and Croatian use ulica; Albanian uses rruga."
+        },
+        {
+          value: "Bilingual street and town signs",
+          meansWhat: "A minority-language region — often the single most precise clue available.",
+          where: ["Serbia (Vojvodina, Hungarian)", "Romania (Transylvania, Hungarian)", "Croatia (Istria, Italian)", "North Macedonia (west, Albanian)", "Russia (Tatarstan, Bashkortostan)", "Bulgaria (Latin transliteration on road signs)"],
+          note: "In Bulgaria, dual Cyrillic-and-Latin text on direction and town signs is standard nationally and is NOT a minority-language clue."
+        },
+        {
+          value: "Blue rectangular street-name plates with white Cyrillic text and a Latin transliteration",
+          meansWhat: "Bulgarian towns and cities.",
+          where: ["Bulgaria"],
+          note: "Design varies by municipality and Sofia has its own style, so treat the colour as indicative rather than absolute.",
+          unverified: true
+        },
+        {
+          value: "Green route shields for numbered roads and blue for motorways",
+          meansWhat: "Hungary.",
+          where: ["Hungary"],
+          note: "The opposite way round from Bulgaria, where motorway signage is GREEN and other roads are blue — a useful paired fact."
+        }
+      ]
+    }
+
+  ],
+
+  /* ==================================================================== */
+
+  countries: [
+
+    {
+      name: "Bulgaria",
+      code: "BG",
+      tells: [
+        "Cyrillic in which Ъ appears as an ordinary vowel inside words (България, Търново, ъгъл) while Ы, Э, І and Ї are completely absent — that combination is Bulgarian and nothing else.",
+        "The definite article is glued onto the end of nouns: -ът, -ят, -та, -то, -те. Shop and office signs read АПТЕКАТА, ОБЩИНАТА, ЦЕНТЪРЪТ. No East Slavic language does this.",
+        "Company names carry ЕООД, ООД, АД or ЕТ. Seeing ООО instead means Russia; ТОВ means Ukraine.",
+        "Addresses written with ул., бул., пл., гр., с., ж.к. and кв. The housing-estate prefix ж.к. is distinctly Bulgarian.",
+        "Round concrete utility poles whose tops carry three large insulators on upward-facing hooks, set alternately rather than in a line — the country's strongest infrastructure clue.",
+        "Thin, worn road paint on cracked asphalt with snaking tar-seam repairs, even on main roads.",
+        "Chevrons on bends are red arrows on a white board; the pedestrian-crossing warning sign shows four stripes and the walking figure wears a hat.",
+        "Direction signs are blue and arrow-shaped with Cyrillic above a Latin transliteration; motorway signage is green.",
+        "Panel blocks (панелки) with a visible grid of panel joints and individually glazed-in balconies in mismatched frames, plus a facade covered in satellite dishes.",
+        "Village houses in yellow or beige brick with orange clay tile roofs patched in mortar, walled courtyards and grapevines over the yard.",
+        "Yellow taxis with a chequered stripe and a price list taped inside the rear side window.",
+        "Granite sett cobbles (паваж) on older town-centre streets — Plovdiv, central Sofia.",
+        "Terrain by region: flat Danube plain and Dobrudzha in the north and north-east with huge arable fields and poplar windbreaks; the Stara Planina ridge across the middle; Rila, Pirin and the Rhodopes with dark conifer forest in the south-west; the Black Sea coast in the east.",
+        "Danube towns sit on the river with Romania visible across the water, and their centres are full of 19th-century Neo-Baroque and Neo-Renaissance facades that look Central European rather than Balkan."
+      ],
+      plate: "White EU plate with a blue band showing the EU stars over BG. Format is one or two letters, four digits, then two letters — for example Р 1234 АВ. Only twelve letters are ever used (А В Е К М Н О Р С Т У Х) because they read identically in Cyrillic and Latin. The letter О is drawn egg-shaped while the digit zero is a plain oval. Province codes: С / СА / СВ Sofia city, В Varna, А Burgas, РВ Plovdiv, ВТ Veliko Tarnovo, Н Shumen, Т Targovishte, СС Silistra, РР Razgrad.",
+      script: "Cyrillic (Bulgarian). Uses Щ, Я, Ю, Й, Ь and Ъ; has no Ы, Э, Ё, І, Ї, Є, Ґ, Љ, Њ, Џ, Ј, Ђ, Ћ, Ѓ, Ќ or Ѕ. Road signs also carry a Latin transliteration nationwide, so Latin text does NOT rule Bulgaria out. STOP signs are written in Latin.",
+      roadLines: "White and noticeably THIN, frequently faded. Solid or dashed centre line plus a thin edge line; on minor roads the paint may be missing altogether. Thin paint on cracked, patched asphalt is close to a Bulgarian signature.",
+      bollard: "Weak clue here — bollards are relatively uncommon and generic when present: a plain white post with a red reflector facing traffic and white behind. Never try to identify Bulgaria from a bollard; use poles, script and road condition instead.",
+      poles: "Round concrete poles. The signature is the pole TOP: three large insulators mounted on upward-facing hooks, staggered rather than aligned. Wooden poles appear in villages and on low-voltage spurs.",
+      signs: "Warning triangles are white with a red border. Direction signs are blue arrow-shaped with Cyrillic over Latin; motorway direction signage is green. Town entry signs are white boards with two lines of text, Cyrillic then Latin. The Balkan SNV typeface is used, which is shared with Romania, Serbia and North Macedonia — so do not identify the country from the letterforms alone.",
+      chevrons: "Red arrows on a white board.",
+      guardrail: "Ordinary steel barriers, often old and unpainted; mountain roads also use concrete posts and blocks. Not a reliable Bulgarian discriminator.",
+      architecture: "Two dominant layers. Socialist panel blocks (панелки) with visible rectangular panel joints, mismatched glazed balconies and ground-floor shops with awnings. Beneath that, village and small-town houses in yellow or beige brick or stucco with orange clay tile roofs, mortar patches, walled courtyards and vine trellises. Danube towns add 19th-century Central European facades.",
+      vegetation: "Continental. Oak, hornbeam and beech deciduous forest; wheat and sunflower plains across the Danubian north and Dobrudzha; poplar rows planted along field edges; vineyards widely; rose and lavender fields in the Rose Valley near Kazanlak and Karlovo; conifers above roughly 1200 m in Rila, Pirin and the Rhodopes; a distinct milder coastal strip on the Black Sea.",
+      cars: "An old, import-driven used-car fleet: 1990s and 2000s VW Golf and Passat, Opel Astra and Vectra, Renault, Peugeot and Ford dominate. Dacia is common, more so near the Romanian border. Surviving Ladas in villages. Yellow taxis nationwide. Horse carts still appear on rural roads.",
+      domain: ".bg",
+      phone: "+359 — mobiles usually printed as 087 / 088 / 089 followed by seven digits",
+      confusedWith: ["North Macedonia", "Serbia", "Russia", "Ukraine", "Romania"]
+    },
+
+    {
+      name: "Romania",
+      code: "RO",
+      tells: [
+        "Latin script with Ă, Â, Î and the comma-below letters Ș and Ț.",
+        "Edge lines made of SHORT dashes with narrow gaps, next to a centre line that is noticeably thicker than average — the cleanest way to split Romania from Bulgaria without reading text.",
+        "Concrete poles with holes cast through them, the holes running all the way down to the ground; the openings are wide and tall.",
+        "Chevrons are red on white with a YELLOW frame — the yellow border is the distinguishing feature in the region.",
+        "Town entry: a yellow sign with a speed limit and a city skyline, with a white name board underneath.",
+        "Dacia everywhere — Logan, Sandero, Duster — plus horse-drawn carts on rural roads.",
+        "Pastel-painted single-family houses with orange tile or grey metal roofs."
+      ],
+      plate: "Standard long white EU plate with a single blue band on the left reading RO. County letter code, then digits, then a three-letter group — for example B 12 ABC for Bucharest.",
+      script: "Latin. Ă ă, Â â, Î î, Ș ș, Ț ț. No Cyrillic since the 19th century.",
+      roadLines: "White. Outer lines are short dashes with narrow gaps; the middle line is unusually thick.",
+      bollard: "Thin white post with a short red vertical strip near the top. Uncommon, so their absence proves nothing.",
+      poles: "Holey concrete poles with wide openings running to the base; plain round concrete poles are also frequent.",
+      signs: "Warning triangles white with a red border. Direction signs are blue, arrow-shaped, with a white border and road numbers. The yield sign has an extremely thick red border with only a thin white outline.",
+      chevrons: "Red on white, very often inside a yellow frame.",
+      guardrail: "Standard steel barriers; not a strong Romanian clue.",
+      architecture: "Single-family stone or stucco houses painted in pastel colours, orange tile or grey metal roofs. Socialist blocuri in towns.",
+      vegetation: "Continental. Wheat and sunflower plains in Wallachia and Moldavia, beech and oak forest, the forested Carpathian arc through the centre and north.",
+      cars: "Dacia dominates. Older German and French second-hand imports; horse carts common in villages.",
+      domain: ".ro",
+      phone: "+40 — mobiles all start 07",
+      confusedWith: ["Bulgaria", "Moldova", "Serbia", "Hungary"]
+    },
+
+    {
+      name: "Serbia",
+      code: "RS",
+      tells: [
+        "Cyrillic and Latin used side by side, sometimes on the same street — seeing Latin does NOT rule Serbia out.",
+        "Serbian Cyrillic exclusives Ђ and Ћ, plus the shared South-Slavic set Љ, Њ, Џ and Ј. No Ъ, Й, Щ, Ю or Я at all.",
+        "Bollards are flat with almost no depth from the side, and the reflector sits OFF-CENTRE.",
+        "Guardrails are B-profile (squared box section) essentially everywhere — the cleanest split against A-profile Slovenia and North Macedonia.",
+        "Chevrons are a BLACK arrow on a white board — unusual in the region, where red is the norm.",
+        "Bilingual Serbian and Hungarian signage across northern Vojvodina.",
+        "Green plates on agricultural vehicles."
+      ],
+      plate: "White plate, blue band on the left reading SRB with the flag. A two-letter city code, then a small Serbian cross shield, then three or four digits, a hyphen and two letters — for example BG 123-AB. City codes appear in both Latin and Cyrillic.",
+      script: "Cyrillic and Latin in parallel. Cyrillic: Ђ, Ћ, Љ, Њ, Џ, Ј. Latin: Č, Ć, Đ, Š, Ž.",
+      roadLines: "White, standard European patterning — not a strong Serbian clue.",
+      bollard: "Flat post with no real depth from the side and an off-centre reflector.",
+      poles: "Plain round concrete or wooden poles with unremarkable tops — when the poles tell you nothing in a Balkan photo, switch to the guardrail and the script.",
+      signs: "Warning triangles white with a red border. Bilingual Serbian-Hungarian town signs across Vojvodina.",
+      chevrons: "Black arrow on a white board.",
+      guardrail: "B-profile (squared) only — a genuinely reliable Serbian clue.",
+      architecture: "Brick and stucco houses, socialist blocks in towns, flat agricultural villages with long plots in Vojvodina.",
+      vegetation: "Flat Pannonian farmland in Vojvodina in the north; rolling hills through the centre; lush green mountains along the southern and south-eastern borders.",
+      cars: "Mixed western second-hand fleet with surviving Zastava Yugo and Zastava 101.",
+      domain: ".rs",
+      phone: "+381",
+      confusedWith: ["Bosnia and Herzegovina", "Montenegro", "North Macedonia", "Croatia", "Bulgaria"]
+    },
+
+    {
+      name: "North Macedonia",
+      code: "MK",
+      tells: [
+        "Macedonian Cyrillic exclusives Ѓ, Ќ and Ѕ, plus Ј, Љ, Њ and Џ. Crucially there is NO Ъ, Я, Ю, Й or Щ — so any of those in Balkan Cyrillic means Bulgaria, not North Macedonia.",
+        "Direction signs are yellow and carry BOTH Latin and Cyrillic — effectively a national signature.",
+        "Warning triangles are filled solid yellow, unlike most of Europe.",
+        "Two bollard types coexist: a thin rounded post and a wedge post, both white with red or white reflectors on a black patch.",
+        "A-profile guardrails with red reflectors.",
+        "Company names end in ДООЕЛ.",
+        "Dry pale grassland with low hills and scattered trees over much of the country.",
+        "Albanian-language signage across the west of the country."
+      ],
+      plate: "White plate with a blue band on the left reading NMK. Two-letter region code, a small red-and-yellow badge, four digits, then two letters — for example SK 1234 AB. Q, W, X and Y are never used because they have no Cyrillic equivalent.",
+      script: "Cyrillic (Macedonian), with Albanian in Latin in the west. Ѓ, Ќ, Ѕ, Ј, Љ, Њ, Џ.",
+      roadLines: "White, standard patterning.",
+      bollard: "Two coexisting types — thin and rounded, or wedge-shaped — white with red or white reflectors mounted on a black surface.",
+      poles: "Includes the tall lamp-style poles also seen in Greece; obituary posters pasted on poles are common and their design varies by city.",
+      signs: "Warning signs filled yellow. Direction signs yellow with dual-script text.",
+      chevrons: "Commonly red or black arrows on a light board; less distinctive than the yellow signs.",
+      guardrail: "A-profile with red reflectors.",
+      architecture: "Concrete blocks in towns; unrendered brick houses with concrete frames in villages; Ottoman-era old town cores in Skopje and Bitola.",
+      vegetation: "Dry pale grassland, sparse scattered trees, low hills; forested mountains along the western and eastern borders.",
+      cars: "Old western second-hand imports; some surviving Zastava models.",
+      domain: ".mk",
+      phone: "+389",
+      confusedWith: ["Bulgaria", "Serbia", "Albania", "Greece"]
+    },
+
+    {
+      name: "Greece",
+      code: "GR",
+      tells: [
+        "The Greek alphabet — Ω, Δ, Θ, Λ, Ξ, Π, Σ, Φ, Ψ. Nothing else in Europe uses it except Cyprus, which drives on the left.",
+        "Tall dark-brown wooden poles with a harp-shaped metal frame and about five vertical insulators.",
+        "Wedge-shaped bollards with near-SQUARE reflectors, red facing traffic and white behind.",
+        "Warning triangles on a YELLOW background with a red border.",
+        "Chevrons are white arrows on a BLACK board.",
+        "Double solid white centre lines that look slightly faded, plus more yellow restriction paint than neighbouring countries.",
+        "Direction signs are blue and arrow-shaped with the Greek place name in YELLOW above the Latin transliteration in white.",
+        "Town entry signs are white with thick horizontal blue stripes.",
+        "Red dirt is very common; olive groves everywhere; taxis carry yellow plates."
+      ],
+      plate: "Black on white with a blue EU band reading GR. Format is three letters, a dash and four digits. Only letters whose shapes exist in both Greek and Latin are used: Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ. Taxis carry YELLOW plates with red letters.",
+      script: "Greek. Latin transliteration appears on road signs and tourist signage.",
+      roadLines: "White, with double solid centre lines common and often faded. More yellow paint than most southern European countries.",
+      bollard: "Wedge-shaped with almost square reflectors — red on the front, white on the back.",
+      poles: "Tall dark wooden poles, harp-shaped metal frames, roughly five vertical insulators.",
+      signs: "Yellow-background warning triangles with a red border. Blue arrow direction signs with yellow Greek over white Latin. White town signs with thick blue stripes.",
+      chevrons: "White arrows on black.",
+      guardrail: "Standard steel barriers; not a strong Greek clue.",
+      architecture: "White and pastel stone houses; on the islands, white walls with blue doors, shutters and railings. Mainland towns are far plainer, with flat-roofed concrete apartment blocks and rooftop solar water heaters.",
+      vegetation: "Mediterranean — olive groves, Aleppo pine, cypress, dry phrygana scrub, and distinctive red soil. Dry pale interior basins; forested mountains in the north.",
+      cars: "Small cars dominate; yellow taxis in Athens; heavy scooter use on the islands.",
+      domain: ".gr",
+      phone: "+30 — flat ten-digit numbers, mobiles start 69",
+      confusedWith: ["Cyprus", "Italy", "Turkey", "Albania", "North Macedonia"]
+    },
+
+    {
+      name: "Turkey",
+      code: "TR",
+      tells: [
+        "Turkish Latin script: Ç, Ş, Ğ, Ö, Ü, plus the dotless ı and — decisively — a capital İ WITH a dot.",
+        "Stop signs read DUR.",
+        "Steel lattice and mesh utility poles on a huge scale; in European Turkey outside Istanbul, poles carry a six-digit code plate under a yellow electrical warning sign.",
+        "Plain white rectangular bollards, thin from the side, with a single red reflector facing traffic; a rare yellow variant in snowy eastern regions.",
+        "Enormous amounts of divided highway, and in the east directions are often separated only by a painted double line with no barrier.",
+        "Turkish flags flown extremely widely on buildings and in public spaces.",
+        "Blocky square apartment slabs in every town; roof type shifts west to east — tiled in the western two thirds, flat in the south-east, metal in the east.",
+        "Yellow taxis, mostly Fiat and Renault; Tofaş Şahin and Doğan survivors."
+      ],
+      plate: "Long white plate with a blue band on the left carrying the Turkish flag over TR — flag, not EU stars. Province number, then letters and digits, e.g. 34 ABC 123 for Istanbul.",
+      script: "Latin (Turkish). Ç, Ş, Ğ, Ö, Ü, ı and İ.",
+      roadLines: "White. Wide four-lane divided highways with double painted centre lines and no physical barrier are characteristic, especially in the east.",
+      bollard: "Rectangular, plain white, thin from the side, single red reflector on the front. Rare yellow body in high-snowfall areas.",
+      poles: "Steel lattice or mesh poles are extremely common; code plates under yellow warning signs in the European part outside Istanbul.",
+      signs: "Warning triangles white with a red border. Chevrons usually red on white. Direction signs use noticeably wide letter spacing. City street-sign styles vary: Ankara blue with rounded tops, Izmir dark blue and bulging with an emblem, Bursa green with raised letters, Trabzon red ovals.",
+      chevrons: "Red on white, with regional variants.",
+      guardrail: "Both A-profile (rounded) and B-profile (squared) in use — the mix itself distinguishes Turkey from most Mediterranean neighbours.",
+      architecture: "Tall, blocky, square apartment slabs in urban areas. Roofing shifts by region: tiled across the western two thirds, flat in the south-east, metal in the east and pyramid-shaped metal in the far east near Lake Van. Rooftop water tanks and solar heaters everywhere.",
+      vegetation: "Highly varied: Mediterranean coast with olives and pine; dry treeless central Anatolian plateau; humid green Black Sea coast with tea plantations; mountains in the east.",
+      cars: "Renault and Fiat dominate; Tofaş Şahin and Doğan survivors; yellow taxis; heavy commercial truck traffic.",
+      domain: ".tr and .com.tr",
+      phone: "+90 — mobiles start 05",
+      confusedWith: ["Greece", "Bulgaria", "Albania", "Azerbaijan"]
+    },
+
+    {
+      name: "Croatia",
+      code: "HR",
+      tells: [
+        "Latin script with Č, Ć, Đ, Š and Ž; the spelling cluster IJE is frequent, where Serbian would write a single E.",
+        "Bollards are white with a black rectangle patch and a red or white reflector, sharply TRIANGULAR in plan.",
+        "B-profile (squared) guardrails.",
+        "Direction signs are yellow with a black border and pencil-shaped arrow tips.",
+        "Chevrons are red arrows on a yellow or white board.",
+        "Blue fire hydrants with a diagonal protrusion.",
+        "HR stickers on cars, for Hrvatska.",
+        "Bilingual Croatian and Italian signage in Istria.",
+        "Two very different landscapes: green agricultural inland with exposed red brick houses, versus a bare limestone Adriatic coast with beige stone and green shutters."
+      ],
+      plate: "White plate; newer ones carry a blue EU band reading HR, older ones do not. Two-letter city code, the red-and-white chequerboard coat of arms, three or four digits, a hyphen and one or two letters — for example ZG 123-CD. Q, W, X and Y are never used.",
+      script: "Latin (Croatian). Č, Ć, Đ, Š, Ž.",
+      roadLines: "White, standard European patterning.",
+      bollard: "White with a black rectangle, red or white reflector, triangular in plan with noticeably sharp edges.",
+      poles: "Cylindrical concrete or wooden; wooden poles carry alternating hooks, similar to Latvia's.",
+      signs: "Warning triangles white with a red border. Yellow direction signs with a black border and pencil-tipped arrows. Pedestrian sign shows a figure with a belt and a five-stripe crossing.",
+      chevrons: "Red arrows on a yellow or white board.",
+      guardrail: "B-profile, squared edges — the opposite of neighbouring Slovenia's A-profile.",
+      architecture: "Exposed red brick inland; beige stone with green shutters and terracotta roofs on the coast.",
+      vegetation: "Green farmland and deciduous forest inland; bare karst limestone, pine and Mediterranean scrub along the Adriatic.",
+      cars: "Western European second-hand fleet; tourist rental cars heavy on the coast in summer.",
+      domain: ".hr",
+      phone: "+385",
+      confusedWith: ["Slovenia", "Bosnia and Herzegovina", "Serbia", "Hungary", "Italy"]
+    },
+
+    {
+      name: "Hungary",
+      code: "HU",
+      tells: [
+        "Hungarian text — long words dense with accents, and the double-acute letters Ő and Ű that exist essentially nowhere else.",
+        "Street names end in utca (small street) or út (larger road).",
+        "Black-and-white WEDGE bollards with a red front reflector and white rear.",
+        "Chevrons are white arrows on a RED board — the reverse of most neighbours.",
+        "Concrete holey poles with relatively thin holes running all the way to the ground.",
+        "Abnormally tall signposts, with signs fixed by four bolts in a rectangle.",
+        "Green kilometre markers along most roads; green route shields for numbered roads and blue for motorways.",
+        "Road paint is white, but cycle-lane markings are yellow.",
+        "Flat Great Plain terrain over much of the country."
+      ],
+      plate: "White EU plate with a blue band reading H. Since 2022 the format is four letters, the national coat of arms, then three digits — the first two letters are either both vowels or both consonants. The older 1990–2022 format was three letters and three digits. Taxis use yellow plates and electric vehicles green.",
+      script: "Latin (Hungarian). Ő ő, Ű ű, plus acutes and umlauts; Hungarian is not a Slavic language and looks visibly unlike its neighbours.",
+      roadLines: "White; cycle lanes marked in yellow.",
+      bollard: "Wedge-shaped, black and white, red reflector front and white back.",
+      poles: "Concrete holey poles with thin openings running to ground level.",
+      signs: "Warning triangles white with a red border. Very tall signposts, four bolts. Green kilometre markers.",
+      chevrons: "White arrows on a red board.",
+      guardrail: "Standard steel barriers; not a strong Hungarian clue.",
+      architecture: "Light-painted stone and stucco houses with red tiled roofs; long single-storey village houses gable-end to the street; panel blocks in towns.",
+      vegetation: "The flat Great Hungarian Plain — huge arable fields, acacia and poplar rows, few natural forests outside the northern and western hills.",
+      cars: "Western second-hand fleet, Suzuki built locally is very common; yellow taxis in Budapest.",
+      domain: ".hu",
+      phone: "+36",
+      confusedWith: ["Slovakia", "Romania", "Serbia", "Croatia", "Austria"]
+    },
+
+    {
+      name: "Albania",
+      code: "AL",
+      tells: [
+        "A RED band on the left of the licence plate — no other European country does this.",
+        "Albanian Latin script with Ë and Ç, doubled letters rr, ll, xh and zh, and the word rruga for street.",
+        "Bollards identical to Italy's: triangular, white body, BLACK cap, red and grey reflectors.",
+        "The backs of road signs are frequently painted black.",
+        "Chevrons are white arrows on a black board.",
+        "Pastel blocky buildings with many balconies, orange tile roofs, and cylindrical water tanks on the roof.",
+        "Unusually high density of old Mercedes saloons.",
+        "Guardrail ends are flat and wide and bend away from the road."
+      ],
+      plate: "Either a red band on the left, or blue bands on BOTH sides. Format is two letters, three digits, two letters. The red-band variant is unique in Europe.",
+      script: "Latin (Albanian). Ë ë, Ç ç.",
+      roadLines: "White; road quality varies sharply between new corridors and rough rural roads.",
+      bollard: "Triangular, white with a black top and red plus grey reflectors — the same design as Italy.",
+      poles: "Pole tops include an upside-down triangle arrangement and simple horizontal-bar designs.",
+      signs: "Backs of signs often painted black. Speed-limit numbers in a bold font. Stop sign S has notably short terminals.",
+      chevrons: "White on black.",
+      guardrail: "Flat, wide guardrail terminals bending away from the carriageway.",
+      architecture: "Pastel-painted blocky buildings with numerous balconies and orange tile roofs; unrendered brick and unfinished top floors are common; rooftop cylindrical water tanks.",
+      vegetation: "Mediterranean coast with olives and scrub; steep forested and bare mountains inland.",
+      cars: "Very high proportion of old Mercedes; general western second-hand imports.",
+      domain: ".al",
+      phone: "+355",
+      confusedWith: ["Italy", "North Macedonia", "Kosovo", "Greece", "Montenegro"]
+    },
+
+    {
+      name: "Bosnia and Herzegovina",
+      code: "BA",
+      tells: [
+        "The licence plate is deliberately symbol-free: plain white, no coat of arms, no region code, and only the letters A, E, O, J, K, M and T — chosen because they look identical in Latin and Cyrillic.",
+        "Latin and Cyrillic both appear; Cyrillic dominates in Republika Srpska and Latin in the Federation.",
+        "Latin diacritics Č, Ć, Đ, Š and Ž.",
+        "Steep green mountains, deep river valleys and dense forest over most of the country; bare karst in Herzegovina in the south.",
+        "Ottoman-era mosques with slim pencil minarets alongside Catholic and Orthodox churches, often in the same town.",
+        "Old, frequently rusted guardrails and narrow winding mountain roads.",
+        "Occasional visible war damage — pockmarked facades and abandoned shells — in some areas."
+      ],
+      plate: "White, black characters, no national emblem or regional identifier. Format X00-X-000, letters drawn only from A, E, O, J, K, M, T. The absence of symbolism was a deliberate post-war policy so that a plate could not identify a driver's ethnicity.",
+      script: "Latin and Cyrillic in parallel, split by entity. Latin uses Č, Ć, Đ, Š, Ž; Cyrillic uses the Serbian set including Ђ and Ћ.",
+      roadLines: "White, standard European patterning.",
+      bollard: "Not well documented in the usual guides — do not rely on it here.",
+      poles: "Round concrete and wooden poles with unremarkable tops.",
+      signs: "Warning triangles white with a red border; signage appears in both scripts depending on the entity.",
+      chevrons: "Not reliably documented — use the plate and the script instead.",
+      guardrail: "Frequently old and rusted on mountain roads.",
+      architecture: "Steep-roofed houses in mountain valleys, Ottoman old-town cores with minarets, socialist blocks in cities, unrendered brick common in villages.",
+      vegetation: "Dense deciduous and conifer forest on steep mountains; bare grey karst limestone in Herzegovina.",
+      cars: "Old western second-hand imports; surviving Zastava models.",
+      domain: ".ba",
+      phone: "+387",
+      confusedWith: ["Serbia", "Croatia", "Montenegro"]
+    },
+
+    {
+      name: "Montenegro",
+      code: "ME",
+      tells: [
+        "The plate's blue band carries the Montenegrin coat of arms inside a RED circle.",
+        "Bollards are white with a black top, red front reflector and white rear.",
+        "Both A-profile and B-profile guardrails are in use — unusual in the Balkans, where countries normally pick one — and they are often rusted.",
+        "Chevrons appear either as black on white or red on yellow.",
+        "Very narrow one- and two-lane mountain roads.",
+        "Bare pale limestone mountains along the coast, lush green mountains inland, dry tree-sparse hills around Podgorica and pine forest in the east."
+      ],
+      plate: "White plate with a blue band on the left showing MNE and the coat of arms in a red circle. Two-letter city code, digits and letters.",
+      script: "Latin and Cyrillic both in use; Latin diacritics Č, Ć, Đ, Š, Ž.",
+      roadLines: "White, often worn on mountain roads.",
+      bollard: "White with a black top, red reflector on the front and white on the back — the same pattern as Slovenia.",
+      poles: "Simple round concrete or wooden poles.",
+      signs: "Warning triangles white with a red border.",
+      chevrons: "Black on white, or red on yellow.",
+      guardrail: "A mix of A-profile and B-profile, frequently rusted.",
+      architecture: "Stone coastal towns with terracotta roofs; concrete blocks in Podgorica; simple mountain houses inland.",
+      vegetation: "Mediterranean pine and scrub on bare limestone near the coast; dense green forest and alpine meadows inland; dry hills around Podgorica.",
+      cars: "Old western second-hand imports; tourist rentals on the coast.",
+      domain: ".me",
+      phone: "+382",
+      confusedWith: ["Serbia", "Bosnia and Herzegovina", "Croatia", "Albania"]
+    },
+
+    {
+      name: "Slovenia",
+      code: "SI",
+      tells: [
+        "Slovene Latin script with Č, Š and Ž but NO Ć or Đ — that absence is what separates it from Croatian and Serbian Latin.",
+        "White bollards with a black top, a bright red front reflector and a white rear.",
+        "A-profile guardrails with rounded edges — Croatia next door uses squared B-profile.",
+        "Direction signs are yellow with a black border.",
+        "Long outer dashes on the edge line.",
+        "Red house numbers with white numerals — green in Ljubljana.",
+        "Kilometre markers show the road number in a yellow rectangle at the top left with the distance below a dividing line.",
+        "Kozolec hay racks — tall free-standing slatted wooden frames in fields.",
+        "Light walls with dark wooden detailing and half-hipped alpine roofs."
+      ],
+      plate: "White EU plate with a blue band reading SLO. Region code, coat of arms, then digits and letters.",
+      script: "Latin (Slovene). Č, Š, Ž only.",
+      roadLines: "White with characteristically long outer dashes.",
+      bollard: "White with a black top, bright red front reflector, white rear.",
+      poles: "Concrete and wooden poles, unremarkable — use bollard and guardrail instead.",
+      signs: "Warning triangles white with a red border. Yellow direction signs with a black border. Pedestrian sign has five stripes and no belt on the figure. Street signs are white with a metal border on posts, red when wall-mounted, and usually contain ulica.",
+      chevrons: "Red arrows on white; black arrows in a less common variant.",
+      guardrail: "A-profile with rounded edges.",
+      architecture: "Light-coloured walls with dark wooden details, half-hipped roofs, alpine forms in the north; kozolec hay racks in fields.",
+      vegetation: "Heavily forested — over half the country. Alpine terrain in the north-west, karst in the south-west, a short Adriatic coastal strip.",
+      cars: "Central European fleet, newer on average than the Balkans.",
+      domain: ".si",
+      phone: "+386",
+      confusedWith: ["Croatia", "Austria", "Slovakia", "Czechia"]
+    },
+
+    {
+      name: "Slovakia",
+      code: "SK",
+      tells: [
+        "Slovak Latin script with Ľ, Ô, Ä, Ŕ and Ĺ; street names use ulica, which never appears in Czech.",
+        "Orange double reflectors on the front of bollards with a single white reflector behind — newer posts have shifted to a red front reflector.",
+        "Wide round concrete poles frequently mounted in PAIRS, with short metal bars holding the insulators, sometimes a trident or triangular brace.",
+        "Sign borders painted right at the edge of the sign rather than inset as in Czechia; bold typeface.",
+        "Street-name signs with blue text and a thin red border.",
+        "Kilometre markers split into two sections by a black horizontal line, road number on top.",
+        "Roofs with diamond-shaped tiles and grey metal, especially in the east; houses often set gable-end to the road with hip-ended roofs.",
+        "Hiking waymarks: one coloured stripe between two white ones."
+      ],
+      plate: "White EU plate with a blue band reading SK. Two-letter district code, then three digits and two letters.",
+      script: "Latin (Slovak). Ľ, Ô, Ä, Ŕ, Ĺ.",
+      roadLines: "White, standard European patterning.",
+      bollard: "Orange double reflectors front, single white rear; newer variants use a red front reflector.",
+      poles: "Wide round concrete poles, often in pairs, with short metal insulator bars.",
+      signs: "Warning triangles white with a red border. Border paint sits right at the sign edge; bold font. Street signs blue text with a thin red border.",
+      chevrons: "White with red arrows, occasionally red on yellow.",
+      guardrail: "Standard steel barriers; not a strong Slovak clue.",
+      architecture: "Shutters more common than in neighbouring countries; diamond-tile and grey metal roofs, especially in the east; panel blocks in towns.",
+      vegetation: "Heavily forested Carpathian mountains through the centre and north; farmland on the southern lowlands.",
+      cars: "Central European fleet; local Volkswagen, Kia and Peugeot production is visible on the roads.",
+      domain: ".sk",
+      phone: "+421",
+      confusedWith: ["Czechia", "Hungary", "Poland", "Slovenia"]
+    },
+
+    {
+      name: "Czechia",
+      code: "CZ",
+      tells: [
+        "Czech Latin script with Ř, Ě and Ů — none of which exist in Slovak, making this the cleanest Czech-versus-Slovak test.",
+        "Solid white edge lines with NO centre line on many rural roads.",
+        "Orange double reflectors on the front of bollards, single white behind.",
+        "Wide round concrete poles, quite often mounted in pairs, with short metal insulator bars.",
+        "Bright RED street-name signs are the commonest style.",
+        "Arrow-shaped direction signs with filled tips; house numbers on blue or red plates with thin white borders.",
+        "Diamond-shaped roof tiles; suburban houses commonly built in connected pairs.",
+        "Well-maintained, brightly repainted panel blocks in cities."
+      ],
+      plate: "White EU plate with a blue band reading CZ. One digit region code, a letter, then digits and letters.",
+      script: "Latin (Czech). Ř, Ě, Ů, plus Č, Š, Ž.",
+      roadLines: "White; solid outer lines with no centre line is a characteristic rural layout, shared with Italy.",
+      bollard: "Orange double reflectors on the front, single white on the back.",
+      poles: "Wide round concrete poles, often paired, with short metal insulator bars.",
+      signs: "Warning triangles white with a red border, inset from the edge unlike Slovakia. Bright red street-name signs.",
+      chevrons: "White with red arrows.",
+      guardrail: "Standard steel barriers.",
+      architecture: "Rolling hills without high mountains; well-maintained and colourfully repainted panel blocks; diamond roof tiles; suburban houses often built in pairs.",
+      vegetation: "Mixed forest and farmland, rolling hills, spruce plantations in the uplands.",
+      cars: "Škoda dominates, being the domestic marque; otherwise a standard central European fleet.",
+      domain: ".cz",
+      phone: "+420",
+      confusedWith: ["Slovakia", "Poland", "Austria", "Germany"]
+    },
+
+    {
+      name: "Poland",
+      code: "PL",
+      tells: [
+        "Polish Latin script with the barred Ł, plus Ą, Ę, Ś, Ź and Ż; heavy consonant clusters and frequent W.",
+        "Bollards with a red stripe that wraps ALL THE WAY AROUND the post, often numbered.",
+        "Warning triangles on a yellow background with an unusually THIN red border — the thin border is the Polish signature.",
+        "Holey concrete poles where the holes STOP partway down, unlike Romania and Hungary where they run to the ground; A-frame and paired poles are common.",
+        "Double solid centre lines used very liberally, even on modest roads.",
+        "Pedestrian crossing sign drawn with a single horizontal line rather than zebra stripes.",
+        "B-profile guardrails with circular red reflectors.",
+        "Green direction signs with a distinctive typeface."
+      ],
+      plate: "White EU plate with a blue band reading PL. Region letters then digits and letters; electric vehicles use green plates.",
+      script: "Latin (Polish). Ł, Ą, Ę, Ś, Ź, Ż, Ó, Ć, Ń.",
+      roadLines: "All white, with double centre lines very common.",
+      bollard: "Red stripe wrapping fully around the post, reflectors on both faces, sometimes numbered.",
+      poles: "Holey concrete poles whose holes stop before the base; frequently joined or in A-frames.",
+      signs: "Yellow warning triangles with a thin red border. Round prohibitory signs with a thicker red border. Green direction signs.",
+      chevrons: "White boards with red arrows.",
+      guardrail: "B-profile with circular red reflectors.",
+      architecture: "Light or pastel stucco walls; orange, red, black or brown roofs; detached single-family houses alongside renovated communist-era blocks.",
+      vegetation: "Extensive pine plantations, birch, flat glacial plains, lakes in the north.",
+      cars: "Large western second-hand fleet, heavy on VW, Opel and Škoda.",
+      domain: ".pl",
+      phone: "+48",
+      confusedWith: ["Czechia", "Slovakia", "Germany", "Lithuania", "Ukraine"]
+    },
+
+    {
+      name: "Ukraine",
+      code: "UA",
+      tells: [
+        "Ukrainian Cyrillic exclusives І, Ї, Є and Ґ — none of which exist in Russian, Bulgarian, Serbian or Macedonian.",
+        "Street abbreviation is вул. (not ул.), and a city is prefixed м. rather than Russian г.",
+        "Company names carry ТОВ or ФОП, not Russian ООО.",
+        "Licence plates are white with a blue-over-yellow band on the left — Russia's are plain white with the flag at the right end.",
+        "Square-section concrete utility poles, often with a diagonal brace or a wooden pole strapped to a concrete stub.",
+        "Guardrails, kerbs and tree trunks painted in black-and-white bands.",
+        "Pedestrian crossing sign drawn with three stripes.",
+        "Vast flat black-earth farmland with sunflower and wheat; birch and poplar shelter belts."
+      ],
+      plate: "White plate with a blue-over-yellow national band on the left reading UA. Two letters, four digits, two letters.",
+      script: "Cyrillic (Ukrainian). І, Ї, Є, Ґ present; Ы, Э, Ё absent; Ъ is not used, an apostrophe takes its place.",
+      roadLines: "White, frequently worn.",
+      bollard: "Varied and inconsistent; the Polish wraparound style appears in Zakarpattia in the far west.",
+      poles: "Square concrete poles with varying tops, sometimes whitewashed at the base; diagonal braces common.",
+      signs: "White town entry signs. Red chevrons with white arrows. Black-and-white painted guardrails.",
+      chevrons: "White arrows on red.",
+      guardrail: "Steel barriers, very often painted in black-and-white bands.",
+      architecture: "Light grey brick Soviet-era apartment blocks; single-family brick houses with corrugated roofs behind fences in the suburbs; Hungarian-influenced forms near the western border.",
+      vegetation: "Flat black-earth steppe and farmland with sunflower and wheat; birch and poplar shelter belts; forest in the north and west; Carpathians in the far west.",
+      cars: "Mixed: old Ladas and Soviet vehicles alongside imported European second-hand cars.",
+      domain: ".ua",
+      phone: "+380",
+      confusedWith: ["Russia", "Belarus", "Moldova", "Poland"]
+    },
+
+    {
+      name: "Russia",
+      code: "RU",
+      tells: [
+        "Russian Cyrillic has Ы, Э and Ё — none of which exist in Bulgarian, Ukrainian, Serbian or Macedonian. Ы in particular turns up constantly.",
+        "Ъ appears only as a rare hard sign, never as a vowel and never at the start of a word — the opposite of Bulgarian usage.",
+        "Company names carry ООО, ЗАО or ИП.",
+        "Licence plates are plain white with the flag and RUS at the RIGHT-hand end, with no blue band on the left.",
+        "Guardrails, kerbs and tree trunks painted in black-and-white bands.",
+        "Birch and spruce forest over enormous distances; concrete slab roads in the far north.",
+        "Right-hand-drive Japanese imports become increasingly common east of roughly Novosibirsk.",
+        "Bilingual town signs in the minority-language republics such as Tatarstan and Bashkortostan."
+      ],
+      plate: "White plate, black characters, with the Russian flag and RUS at the right-hand end and a small regional code. No EU-style blue band on the left.",
+      script: "Cyrillic (Russian). Ы, Э, Ё present; no І, Ї, Є, Ґ, Љ, Њ, Џ, Ј.",
+      roadLines: "White; yellow has been permitted as an alternative for separating opposing traffic in recent years but remains uncommon.",
+      bollard: "Varies enormously by region; a thin post mounted on a stick is typical of the east, from roughly Omsk onwards.",
+      poles: "Mostly concrete, square or round depending on region; wooden poles in the north and Siberia.",
+      signs: "Warning triangles white with a red border. Regional quirks: black-bottomed signs around Stavropol, Chechnya and western Dagestan.",
+      chevrons: "White arrows on red.",
+      guardrail: "Steel barriers, commonly painted in black-and-white bands; concrete slab roadways in the far north.",
+      architecture: "Soviet panel blocks in every city; wooden houses in the north and Siberia; red brick in the south; white limestone in Dagestan.",
+      vegetation: "Birch and spruce taiga across most of the country; steppe in the south; tundra in the far north.",
+      cars: "Lada in enormous numbers, plus UAZ and GAZ; Japanese right-hand-drive imports in the east.",
+      domain: ".ru",
+      phone: "+7 — shared with Kazakhstan",
+      confusedWith: ["Ukraine", "Belarus", "Kazakhstan", "Bulgaria"]
+    },
+
+    {
+      name: "Moldova",
+      code: "MD",
+      tells: [
+        "Romanian language in Latin script — Ă, Â, Î, Ș, Ț — combined with post-Soviet infrastructure, which is the combination that names the country.",
+        "Licence plates are white with a WIDER-than-standard blue band carrying the Moldovan tricolour over MD; the format is three letters and three digits.",
+        "Guardrails, kerbs and tree trunks painted in black-and-white bands, as in Ukraine.",
+        "Rolling farmland, vineyards and walnut trees; almost no mountains.",
+        "Very old vehicle fleet — Ladas alongside Dacias and western second-hand imports.",
+        "Russian-language signage appears alongside Romanian, especially in the north and in Transnistria."
+      ],
+      plate: "White plate with a wider blue band on the left carrying the Moldovan flag over MD; three letters and three digits in embossed FE-Schrift lettering.",
+      script: "Latin (Romanian), with Russian Cyrillic alongside it in places.",
+      roadLines: "White, often worn; road quality is poor away from main corridors.",
+      bollard: "Not well documented — do not rely on it here.",
+      poles: "Concrete poles in post-Soviet styles, similar to Ukraine's.",
+      signs: "Warning triangles white with a red border; Romanian-language text, sometimes with Russian.",
+      chevrons: "Not reliably documented.",
+      guardrail: "Steel barriers, often painted in black-and-white bands.",
+      architecture: "Single-storey rural houses with painted plaster and decorative gates; Soviet panel blocks in Chișinău and the larger towns.",
+      vegetation: "Rolling farmland, vineyards on a large scale, walnut and acacia along the roads; no significant mountains.",
+      cars: "Very old fleet: Lada, Dacia and western second-hand imports.",
+      domain: ".md",
+      phone: "+373",
+      confusedWith: ["Romania", "Ukraine"]
+    },
+
+    {
+      name: "Italy",
+      code: "IT",
+      tells: [
+        "Licence plates with blue bands on BOTH sides, and a front plate noticeably shorter than the rear.",
+        "Triangular bollards, white with a black cap, red reflector front and white rear — identical to Albania's, so check the plate.",
+        "Round concrete poles with a concrete TRIDENT top; round concrete poles are themselves uncommon around the Mediterranean.",
+        "Solid white outer lines with no centre line on many rural roads.",
+        "The backs of road signs are black or dark grey.",
+        "Chevrons are white arrows on a black board.",
+        "Direction signs are blue with white arrows and set in all capitals; street signs are white with a thin blue border and black text.",
+        "Pastel stone houses with terracotta roofs and wooden shutters split in two that open sideways.",
+        "Fiat Panda, Punto and 500 as the default small car; heavy scooter use."
+      ],
+      plate: "White EU plate with blue bands on BOTH the left and right. Two letters, three digits, two letters. The front plate is shorter than the rear.",
+      script: "Latin (Italian). Accented vowels à, è, ì, ò, ù; no unusual letters.",
+      roadLines: "White; solid outer lines with no centre line is a characteristic rural layout, shared with Czechia.",
+      bollard: "Triangular in plan, white with a black top, red front reflector and white rear.",
+      poles: "Round concrete poles with concrete trident tops; wooden poles carry a small white sticker.",
+      signs: "Warning triangles white with a red border. Blue direction signs with white all-caps text. Sign backs black or dark grey.",
+      chevrons: "White arrows on black.",
+      guardrail: "Standard steel barriers.",
+      architecture: "Pastel stone houses with terracotta roofs, two-part wooden shutters opening sideways, narrow historic streets.",
+      vegetation: "Alpine in the north; Po plain farmland; Mediterranean olive, cypress and pine through the centre and south.",
+      cars: "Fiat dominates in small cars; very heavy scooter and small-van traffic.",
+      domain: ".it",
+      phone: "+39 — landlines keep the leading 0 even with the country code",
+      confusedWith: ["Albania", "Spain", "Greece", "Croatia"]
+    },
+
+    {
+      name: "Spain",
+      code: "ES",
+      tells: [
+        "Spanish Latin script with Ñ and inverted opening punctuation ¿ and ¡.",
+        "Bollards are white with GREY reflectors on both sides — grey reflectors are unusual in Europe.",
+        "Kilometre markers are colour-coded by road class: orange, green then yellow borders from largest to smallest roads.",
+        "Heavy regional variation in bollards, markers and signage — Catalonia, Andalusia, the Basque provinces and Murcia all differ visibly.",
+        "Chevrons vary by region: large square boards with a single arrow in Catalonia, small square red-on-white boards in Murcia.",
+        "Bilingual signage in Catalonia, Valencia, the Basque Country and Galicia.",
+        "Dry pale interior plateaus with olive and almond groves; white-walled villages in the south."
+      ],
+      plate: "White EU plate with a blue band reading E. Four digits followed by three letters, with no regional code since 2000.",
+      script: "Latin (Spanish), plus Catalan, Basque and Galician on regional signage.",
+      roadLines: "White; edge-line style varies noticeably between provinces, which is itself a regional clue.",
+      bollard: "White body with grey reflectors on both sides; regional variants include green tops in Extremadura and an orange front reflector in Lleida and Tarragona.",
+      poles: "Varied; steel mesh poles forming rectangular shapes are characteristic of Murcia and southern Alicante.",
+      signs: "Warning triangles white with a red border. Kilometre markers colour-coded by road class; Andalusian markers are unusually tall.",
+      chevrons: "Regionally variable — square boards with red or black arrows.",
+      guardrail: "Standard steel barriers; Ceuta uses black-and-white painted rails.",
+      architecture: "White-walled villages with terracotta roofs in the south; stone and brick in the north; large modern apartment blocks along the coast.",
+      vegetation: "Dry pale interior plateau with olive and almond groves and holm oak; green Atlantic north; palm and citrus along the Mediterranean coast.",
+      cars: "Seat is the domestic marque and very common; otherwise a standard western European fleet.",
+      domain: ".es",
+      phone: "+34",
+      confusedWith: ["Portugal", "Italy", "Greece", "France"]
+    }
+
+  ]
+};

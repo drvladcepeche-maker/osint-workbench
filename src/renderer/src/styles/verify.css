@@ -1,0 +1,233 @@
+/*
+ * Verification — the human end of the confidence ramp.
+ *
+ * Everything here is chrome around a decision that is already carried by the ramp itself.
+ * So it stays quiet: no accent, no wash, no colour that means anything. The ramp owns
+ * lightness and weight, `--accent` means a run is live and nothing else, and a form that
+ * lit up to celebrate a confirmation would be exactly the tone DESIGN.md rules out.
+ *
+ * The one colour spent is `--danger`, on Refute, through the existing `.btn--danger`. It
+ * is not a warning about damage — nothing is destroyed — it is the standard mark on the
+ * action that inverts a claim, and it is the same red the app uses for every other
+ * consequential verb.
+ */
+
+/* ------------------------------------------------- the confidence cell as a control */
+
+/*
+ * A bare button. It exists for the hit area and the focus ring and must change nothing
+ * about the mark inside it: the ramp's ink and weight have to read identically whether
+ * the cell happens to be interactive, or the table would be showing two different
+ * confidence vocabularies in the same column.
+ */
+.conf-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Hover is on the row already. This adds only the underline that says the word is a
+   control, on the word alone rather than the glyph, so the row's 30px never moves. */
+.conf-cell:hover .conf__word {
+  text-decoration: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 2px;
+}
+
+.conf-cell:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ------------------------------------------------------------- the inline row */
+
+/*
+ * The form opens in a row of its own, directly under the finding it is about, on the
+ * sunken ground the contradicted group already uses. Sunken rather than raised: it is
+ * subordinate to the row above it, and a card floating over a dense table would break
+ * the hairline grid the whole surface is built on.
+ */
+.verify-row td {
+  height: auto;
+  padding: var(--space-3) var(--space-4);
+  white-space: normal;
+  background: var(--bg-sunken);
+}
+
+/* ------------------------------------------------------------- the control */
+
+.verify {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* In the table the control is already inside a padded row, and the margin above it would
+   push the form off the claim it belongs to. */
+.verify--compact {
+  margin-top: 0;
+  gap: var(--space-2);
+  max-width: var(--measure);
+}
+
+.verify__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.verify__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Sentence case, sans, at UI size — a heading over a field, not a section title. The
+   micro label under it does the real work of saying what to type. */
+.verify__heading {
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------ standing corroboration */
+
+/*
+ * The count of independent origins behind a claim, on screen whether or not it is enough.
+ * Especially when it is not: "one source said so, and nothing else has" is the most
+ * useful sentence this app can put beside a finding.
+ */
+.corrob {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.corrob__count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+/* The number reads at the finding's own level, so a corroborated row's count carries the
+   same ink and weight as the word "corroborated" three rows above it. */
+.corrob__n {
+  flex: none;
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.corrob__sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+/* -------------------------------------------------------------- the audit trail */
+
+/*
+ * Every confidence change this finding has been through. It is the on-screen face of
+ * `confidence-log.jsonl`, which is append-only, so nothing here is an affordance —
+ * there is deliberately no edit, no delete, and no hover state.
+ */
+.verify-log {
+  padding: var(--space-4);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.verify-log__title {
+  margin-bottom: var(--space-3);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  font-weight: 500;
+}
+
+.verify-log__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+/* A hairline rule between entries rather than a card each: the log is one sequence, and
+   boxing every step would make three changes look like three unrelated events. */
+.verify-log__entry + .verify-log__entry {
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+}
+
+.verify-log__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* The level reached, in that level's own ink and weight — the same vocabulary as the
+   table, so the log reads as the history of the mark rather than a second notation. */
+.verify-log__level {
+  min-width: 0;
+  font-size: var(--text-data);
+}
+
+.verify-log__at {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+}
+
+.verify-log__by {
+  margin-top: var(--space-1);
+  max-width: var(--measure);
+  color: var(--ink-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-normal);
+}
+
+.verify-log__sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-top: var(--space-1);
+  color: var(--ink-muted);
+  font-size: var(--text-data);
+}
+
+/*
+ * The operator's own words, indented behind a rule.
+ *
+ * This is the single most important string in the file — it is the answer to "why do I
+ * believe this" and what an export cites — so it gets `--ink`, the brightest body value,
+ * while everything describing it stays muted. The rule is a border, not a colour accent:
+ * `--border`, the same hairline as everything else.
+ */
+.verify-log__note {
+  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: var(--hairline) solid var(--border);
+  max-width: var(--measure);
+  color: var(--ink);
+  font-size: var(--text-data);
+  line-height: var(--leading-prose);
+  overflow-wrap: break-word;
+}

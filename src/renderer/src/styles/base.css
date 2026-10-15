@@ -1,0 +1,195 @@
+/*
+ * Reset and element defaults.
+ *
+ * Hand-written rather than a framework preflight, because the whole design system is
+ * ~40 tokens and a dozen components: a utility framework would only have hidden the
+ * colours from `scripts/design-lint.mjs`, which greps this tree for literals.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  /* The type scale is fixed rem at a known DPI, so the root must not drift. */
+  font-size: 16px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  line-height: var(--leading-normal);
+  /* Variable fonts cover 100–900 natively. Without this the browser is free to
+     synthesise weight 450 by smearing 400, which would make the corroborated rung of the
+     confidence ramp a rendering artefact instead of a real weight. */
+  font-synthesis: none;
+  /* No overscroll rubber-banding in a desktop shell. */
+  overscroll-behavior: none;
+}
+
+/* The app never scrolls as a page; every scroll is inside a named region. */
+body {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: var(--leading-tight);
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+svg {
+  display: block;
+  flex: none;
+}
+
+hr {
+  border: none;
+  border-top: var(--hairline) solid var(--border);
+}
+
+/* ---------------------------------------------------------------------- focus
+   One ring, everywhere, from one rule. The offset is what makes it clear 3:1 against the
+   neighbouring element as well as the surface: a dark gap separates ring from control,
+   so the ring is always measured against a background and never against whatever happens
+   to sit beside it.
+
+   `:focus-visible`, not `:focus` — a mouse click on a row should not light up like a
+   keyboard landing, or the ring stops meaning "you are here". */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Table rows cannot take an outline-offset without it being clipped by the next row, so
+   they get the ring inset instead. Same colour, same width, same 3:1. */
+tr:focus-visible {
+  outline-offset: calc(-1 * var(--focus-width));
+  border-radius: 0;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-md);
+  /* Inset the thumb off the track edge without a second element. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------- the mono rule
+   DESIGN.md: monospace is rationed to *data* — hashes, coordinates, usernames,
+   timestamps, domains, IPs, paths, raw tool output. Never headings, buttons, labels or
+   body copy. Because it is rationed it means something: "this is a literal value you
+   could copy, and character-level detail matters."
+
+   Every monospaced string in the app goes
+   through `.data`, the <Data> component that wraps it, or one of the six other rules
+   listed in MONO_SELECTORS in `scripts/design-lint.mjs`, which fails on any rule that
+   reaches for --font-mono without being listed there. That is what keeps the ration
+   enforceable rather than aspirational. */
+.data {
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  /* Digits must line up in a column of timestamps and counts. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+pre.data,
+.data pre {
+  font-size: var(--text-data);
+  line-height: var(--leading-normal);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Screen-reader-only, for the text labels that keep hue from ever being the sole
+   carrier of meaning when the glyph alone is on screen. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
