@@ -1,0 +1,25 @@
+plugins { id "com.android.application" }
+
+android {
+    namespace "com.osintworkbench.mobile"
+    compileSdk 36
+    defaultConfig {
+        applicationId "com.osintworkbench.mobile"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "0.1.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildTypes {
+        debug { applicationIdSuffix ".debug"; versionNameSuffix "-debug" }
+        release { minifyEnabled false }
+    }
+}
+
+dependencies {
+    implementation "com.googlecode.libphonenumber:libphonenumber:9.0.43"
+}

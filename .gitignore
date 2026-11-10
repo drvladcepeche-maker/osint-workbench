@@ -74,3 +74,9 @@ release/
 out/
 *.bundle
 .tmp-test/
+
+# Android build outputs and machine-local SDK path
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties

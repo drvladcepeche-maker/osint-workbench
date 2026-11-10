@@ -37,5 +37,8 @@
     "react-dom": "^19.2.8",
     "typescript": "^7.0.2",
     "vite": "^7.3.6"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true
   }
 }

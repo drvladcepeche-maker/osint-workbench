@@ -29,6 +29,7 @@ import { hibpPasswordsAdapter } from './hibp-passwords'
 import { holeheAdapter } from './holehe'
 import { maigretAdapter } from './maigret'
 import { patternTimezoneAdapter } from './pattern-timezone'
+import { phoneinfogaAdapter } from './phoneinfoga'
 import { pivotAdapter } from './pivot'
 import { profileEnrichAdapter } from './profile-enrich'
 import { redditProfileAdapter } from './reddit-profile'
@@ -49,6 +50,7 @@ export const SPAWNED_ADAPTERS: Adapter[] = [
   galleryDlAdapter,
   holeheAdapter,
   maigretAdapter,
+  phoneinfogaAdapter,
   sherlockAdapter,
   subfinderAdapter,
   theHarvesterAdapter

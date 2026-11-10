@@ -1338,3 +1338,176 @@ test('pattern-timezone: a malformed transcript yields nothing rather than a wron
   )
   assert.deepEqual(findings, [])
 })
+
+
+/* ---- phoneinfoga ---- */
+
+test('phoneinfoga: parses local numbering metadata and generated search links without claiming identity', () => {
+  const output = [
+    'Running scan for phone number +12125550123...',
+    '',
+    'Results for googlesearch',
+    'Social media:',
+    '\tURL: https://www.google.com/search?q=site%3Aexample.com+intext%3A%22%2B12125550123%22',
+    '',
+    'Results for local',
+    'Raw local: 2125550123',
+    'Local: (212) 555-0123',
+    'E164: +12125550123',
+    'International: 12125550123',
+    'Country: US',
+    '',
+    '2 scanner(s) succeeded'
+  ].join('\n')
+  const findings = parseChecked(
+    'phoneinfoga',
+    rawFrom('phoneinfoga', {
+      entityKind: 'phone',
+      target: '+12125550123',
+      stdout: output
+    })
+  )
+  const text = claims(findings)
+  assert.equal(findings.length, 6, `expected five local fields plus one search-link summary, got ${findings.length}: ${text}`)
+  assert.ok(/national format/.test(text), text)
+  assert.ok(/E\.164 format/.test(text), text)
+  assert.ok(/numbering country "US"/.test(text), text)
+  assert.ok(/generated 1 Google search URL/.test(text), text)
+  assert.ok(/"Social media" category/.test(text), text)
+  assert.ok(text.includes('https://www.google.com/search?q=site%3Aexample.com+intext%3A%22%2B12125550123%22'), 'the exact generated URL must remain available as an openable link')
+  assert.ok(/query links, not search results or evidence/.test(text), text)
+  assert.ok(!/\b(?:is|was) located\b|\blives at\b|\bsubscriber is\b/i.test(text), 'numbering metadata must not become an identity or location claim')
+  assert.ok(sourcesOf(findings).has(localSource('phoneinfoga')))
+  assert.equal(sourcesOf(findings).size, 1, 'all adapter-derived claims must remain local and non-independent')
+})
+
+test('phoneinfoga: malformed, truncated and failed captures produce no findings', () => {
+  const malformed = parseChecked(
+    'phoneinfoga',
+    rawFrom('phoneinfoga', { entityKind: 'phone', target: '+12125550123' }, { stdout: 'not an envelope' })
+  )
+  assert.deepEqual(malformed, [])
+
+  const failed = parseChecked(
+    'phoneinfoga',
+    rawFrom('phoneinfoga', { entityKind: 'phone', target: '+12125550123' }, { ok: false })
+  )
+  assert.deepEqual(failed, [])
+
+  const truncated = parseChecked(
+    'phoneinfoga',
+    rawFrom('phoneinfoga', { entityKind: 'phone', target: '+12125550123', truncated: true }, { stdout: '{"adapter":' })
+  )
+  assert.deepEqual(truncated, [])
+})
+
+test('phoneinfoga: the run disables every network scanner and clears API credentials', async () => {
+  const a = adapter('phoneinfoga')
+  assert.deepEqual(a.accepts, ['phone'])
+  assert.equal(a.requiresNetwork, false)
+  assert.equal(a.requiresKey, false)
+
+  let capturedFile = ''
+  let capturedArgs: string[] = []
+  let capturedEnv: Record<string, string> = {}
+  const ctx = {
+    caseId: 'c1',
+    caseDir: 'C:/test-case',
+    toolkitRoot: 'C:/osint-kit',
+    config: { adapters: { phoneinfoga: { options: { includeDorks: true } } } },
+    signal: new AbortController().signal,
+    timeoutMs: 60_000,
+    progress: () => undefined,
+    log: () => undefined,
+    now: () => T0,
+    spawn: async (file: string, options?: { args?: string[]; env?: Record<string, string> }) => {
+      capturedFile = file
+      capturedArgs = options?.args ?? []
+      capturedEnv = options?.env ?? {}
+      return {
+        exitCode: 0,
+        signal: null,
+        stdout: [
+          'Results for local',
+          'Raw local: 2125550123',
+          'Local: (212) 555-0123',
+          'E164: +12125550123',
+          'International: 12125550123',
+          'Country: US',
+          '',
+          '2 scanner(s) succeeded'
+        ].join('\n'),
+        stderr: '',
+        durationMs: 10,
+        timedOut: false,
+        truncated: false,
+        spawnError: null
+      }
+    }
+  }
+  const result = await a.run(
+    {
+      caseId: 'c1',
+      entity: { id: 'ent_phone', kind: 'phone', value: '+12125550123', label: '+12125550123', attrs: {} },
+      options: {}
+    } as never,
+    ctx as never
+  )
+  assert.ok(capturedFile.toLowerCase().includes('phoneinfoga'), capturedFile)
+  for (const scanner of ['numverify', 'ovh', 'googlecse']) {
+    const i = capturedArgs.indexOf('-D')
+    assert.notEqual(i, -1, `missing disabled scanner arguments: ${capturedArgs.join(' ')}`)
+    assert.ok(capturedArgs.some((v, n) => v === '-D' && capturedArgs[n + 1] === scanner), `${scanner} was not explicitly disabled`)
+  }
+  assert.ok(!capturedArgs.some((v, n) => v === '-D' && capturedArgs[n + 1] === 'googlesearch'), 'link generation should remain enabled when includeDorks=true')
+  assert.equal(capturedEnv.NUMVERIFY_API_KEY, '')
+  assert.equal(capturedEnv.GOOGLE_API_KEY, '')
+  assert.equal(capturedEnv.GOOGLECSE_CX, '')
+  assert.equal(result.ok, true)
+})
+
+test('phoneinfoga: includeDorks=false also disables the local Google query generator', async () => {
+  const a = adapter('phoneinfoga')
+  let capturedArgs: string[] = []
+  const ctx = {
+    caseId: 'c1',
+    caseDir: 'C:/test-case',
+    toolkitRoot: 'C:/osint-kit',
+    config: { adapters: { phoneinfoga: { options: { includeDorks: false } } } },
+    signal: new AbortController().signal,
+    timeoutMs: 60_000,
+    progress: () => undefined,
+    log: () => undefined,
+    now: () => T0,
+    spawn: async (_file: string, options?: { args?: string[] }) => {
+      capturedArgs = options?.args ?? []
+      return {
+        exitCode: 0,
+        signal: null,
+        stdout: [
+          'Results for local',
+          'Raw local: 2125550123',
+          'Local: (212) 555-0123',
+          'E164: +12125550123',
+          'International: 12125550123',
+          'Country: US'
+        ].join('\n'),
+        stderr: '',
+        durationMs: 10,
+        timedOut: false,
+        truncated: false,
+        spawnError: null
+      }
+    }
+  }
+  const result = await a.run(
+    {
+      caseId: 'c1',
+      entity: { id: 'ent_phone', kind: 'phone', value: '+12125550123', label: '+12125550123', attrs: {} },
+      options: {}
+    } as never,
+    ctx as never
+  )
+  assert.ok(capturedArgs.some((v, n) => v === '-D' && capturedArgs[n + 1] === 'googlesearch'))
+  assert.equal(result.ok, true)
+})

@@ -119,6 +119,10 @@
       }
     },
 
+    "phoneinfoga": {
+      "options": { "includeDorks": true }
+    },
+
     "subfinder": {
       "$comment": [
         "Works with zero API keys. The adapter always passes -config and -pc pointing at",
