@@ -1,9 +1,6 @@
 # OSINT Workbench Mobile
 
-Native Android companion for OSINT Workbench. This first mobile release focuses on
-local phone-number parsing, transparent manual search-link generation, and a local
-SQLite case notebook. It is a companion MVP, not feature parity with the Windows desktop
-client; mobile cases are stored locally and do not sync with Windows yet.
+Native Android companion for OSINT Workbench. Version 0.2.0 adds local diagnostic capture and a Termux loopback bridge to GitHub Issues.
 
 ## Included
 
@@ -11,34 +8,37 @@ client; mobile cases are stored locally and do not sync with Windows yet.
 - E.164, international and national formats, numbering region, calling code and line type.
 - Manually opened Google query links; no search is run by the app.
 - Local case storage, case review, deletion and Android share-sheet export.
-- Russian interface and dark OSINT Workbench palette.
+- Unhandled exception capture with Android/app/device context and stack trace.
+- Persistent local diagnostic queue; failed delivery is retained and retried on app launch.
+- Termux bridge for sending reports to GitHub Issues and retrieving open issue lists.
 
 ## Privacy boundary
 
-- The Android manifest intentionally declares **no INTERNET permission**.
+- INTERNET permission is used only for the loopback Termux bridge at 127.0.0.1.
+- Cleartext HTTP is allowed only for 127.0.0.1; other network destinations require HTTPS.
+- Diagnostic reports contain technical exception metadata only. Phone numbers, case notes, SQLite records, contacts and search queries are excluded.
+- Case data remains in the app's local SQLite database and is not synchronized.
 - No contacts, call logs, SMS, location or account permissions are requested.
-- Parsing and case storage happen on the device.
-- A search query is disclosed only after the user taps a generated link and the external
-  browser opens it. Search results are not fetched or interpreted by the app.
-- Numbering region and line type are not treated as subscriber identity, carrier ownership
-  or physical location.
+- Search queries are disclosed only after the user taps a generated link and the external browser opens it.
+
+## Termux bridge
+
+See termux-bridge/README.md. Termux requires Python and GitHub CLI authenticated to drvladcepeche-maker. The bridge binds only to loopback and creates GitHub Issues for incoming technical reports. Shizuku is not required for the basic bridge; it can be used separately for local process management.
+
+## Updates
+
+The package ID and debug signing certificate are kept stable for test updates. VersionCode is incremented so the APK can be installed over the previous test APK without deleting its local data. Keep the same signing key for future test builds.
 
 ## Build
 
-Requirements: Android SDK Platform 36, Android Build Tools 36.0.0, Android Studio JBR,
-and network access for Gradle/Maven dependencies on the first build.
+Requirements: Android SDK Platform 36, Android Build Tools 36.0.0, Android Studio JBR, and network access for Gradle/Maven dependencies on the first build.
 
 Run from Windows:
 
     build-apk.bat
 
-Or:
-
-    gradlew.bat assembleDebug
-
 Output:
 
-    app/build/outputs/apk/debug/app-debug.apk
+    ../release/OSINT-Workbench-Mobile-0.2.0.apk
 
-The debug APK is signed with the local Android debug key and is suitable for sideloading
-and testing. A production Play Store or public release needs a dedicated signing key.
+The APK is debug-signed and suitable for sideload testing. A production Play Store release needs a dedicated signing key.

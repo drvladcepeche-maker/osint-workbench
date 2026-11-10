@@ -57,6 +57,7 @@ public final class MainActivity extends Activity {
         getWindow().setStatusBarColor(BG);
         getWindow().setNavigationBarColor(BG);
         store = new CaseStore(this);
+        Diagnostics.install(this);
         showPhone();
     }
 
@@ -396,7 +397,20 @@ public final class MainActivity extends Activity {
         page.addView(c);
         c.addView(text("ЛОКАЛЬНОСТЬ ПО УМОЛЧАНИЮ", 12, GOLD, true));
         space(c, 8);
-        c.addView(text("Приложение не имеет разрешения INTERNET. Номер разбирается на телефоне; записи хранятся в локальной SQLite-базе приложения. Контакты, геолокация и адресная книга не запрашиваются.", 14, TEXT, false));
+        c.addView(text("Приложение использует сеть только для локального моста Termux на 127.0.0.1. Номер разбирается на телефоне; записи хранятся в локальной SQLite-базе приложения. Контакты, геолокация и адресная книга не запрашиваются.", 14, TEXT, false));
+        space(c, 16);
+        c.addView(text("ДИАГНОСТИКА И СВЯЗЬ С GITHUB", 12, GOLD, true));
+        space(c, 8);
+        c.addView(text("Ошибки приложения сохраняются в закрытой локальной очереди. При запущенном мосте Termux они передаются в GitHub Issues. Номер телефона, заметки и записи дел не отправляются.", 14, TEXT, false));
+        space(c, 10);
+        Button sendLogs = button("Отправить накопленные отчёты", true);
+        c.addView(sendLogs, new LinearLayout.LayoutParams(-1, -2));
+        sendLogs.setOnClickListener(v -> { Diagnostics.flush(); toast("Очередь диагностики передана на отправку"); });
+        space(c, 8);
+        Button issues = button("Получить открытые ошибки GitHub", false);
+        c.addView(issues, new LinearLayout.LayoutParams(-1, -2));
+        issues.setOnClickListener(v -> Diagnostics.fetchIssues(value -> new AlertDialog.Builder(this)
+            .setTitle("Открытые ошибки").setMessage(value).setPositiveButton("Закрыть", null).show()));
         space(c, 16);
         c.addView(text("ПОИСКОВЫЕ ССЫЛКИ", 12, GOLD, true));
         space(c, 8);

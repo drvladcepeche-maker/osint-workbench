@@ -19,8 +19,8 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist "%ROOT%..\release" mkdir "%ROOT%..\release"
-copy /y "app\build\outputs\apk\debug\app-debug.apk" "%ROOT%..\release\OSINT-Workbench-Mobile-0.1.0.apk" >nul
+copy /y "app\build\outputs\apk\debug\app-debug.apk" "%ROOT%..\release\OSINT-Workbench-Mobile-0.2.0.apk" >nul
 if errorlevel 1 exit /b 4
-echo APK ready: "%ROOT%..\release\OSINT-Workbench-Mobile-0.1.0.apk"
-for %%I in ("%ROOT%..\release\OSINT-Workbench-Mobile-0.1.0.apk") do echo Size: %%~zI bytes
+echo APK ready: "%ROOT%..\release\OSINT-Workbench-Mobile-0.2.0.apk"
+for %%I in ("%ROOT%..\release\OSINT-Workbench-Mobile-0.2.0.apk") do echo Size: %%~zI bytes
 endlocal
